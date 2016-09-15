@@ -1,8 +1,13 @@
 
+CFLAGS=-g
+
 t : ray
 	./ray
 
 ray : ray.o
-	cc -o ray ray.c -lm
+	cc -g -o ray ray.c -lm
+
+clean : 
+	rm ray.o ray
 
 

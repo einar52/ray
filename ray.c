@@ -73,6 +73,7 @@ void readVelModel( char *inputFile, VelModel *m )
 		*(m->z+j) = z[j] ;
 		*(m->v+j) = v[j] ;
 	}
+	*(m->z) = 0.0 ;  /* depth of first velocity value must be 0.0 */
 }
 
 
@@ -118,39 +119,54 @@ double rtrace( double v1,double v2, double z, double p, double *x, double *t )
 	*t = b1 * log( si2 * (1.0+co1)/(si1*(1.0+co2))) ;
 	return( zturn) ;
 }
-double traceModel( double p , double z0, VelModel *m, double *time ) 
+double traceModel( double p , VelModel *m, double *time ) 
 {
-	int i ;
-	double x, v1,v2, z,zz,dz, xsum,t, tsum,zold ;
+	int i,more ;
+	double x, v, z,dz,zz, xsum,t, tsum,vold,zold, vBottom ;
+	vBottom = 1.0/p ;
 	xsum = 0.0 ; tsum = 0.0 ;
-	i = 0 ;
+	zold = m->z[0] ;
+	vold = m->v[0] ;
+	i = 1 ;
 	zold = 0.0 ;
 	do {
 		z = m->z[i] ;
-		v1 = m->v[i] ;
-		v2 = m->v[i+1] ;
+		v = m->v[i] ;
 		dz = z - zold ;
 		if( i == m->nVel ) {
 			
 		}
-		zz = rtrace(v1,v2,dz,p,&x,&t) ;
+		zz = rtrace(vold,v,dz,p,&x,&t) ;
+		printf("t =%12.5f z =%12.5f zz =%12.5f x =%12.5f \n",t,z,zz,x) ;
+		vold = v ;
+		zold = z ;
 		xsum += x ;  tsum += t ;
-	} while (zz == 0.0) ;
+		i++ ;
+		more = i < (m->nVel) ;
+	} while (more) ;
 	*time = tsum+tsum ;
+	printf("tsum=%12.6f xsum=%12.6f\n",tsum,xsum) ;
 	return xsum+xsum ;
 }
 
 void testVel()
 {
 	VelModel m ;
+	int n ;
+	double vmax,p,t,x ;
 	readVelModel("test.vel",&m) ;
 	printVelModel(&m) ;
+	n = m.nVel ;
+	vmax = m.v[n-1] ;
+	p = 1.01/vmax ;
+	x = traceModel(p,&m,&t) ;
+	
 }
 void testRay()
 {
 	int i ;
 	double v1,v2,z,p,x,t,zturn ;
-	for ( i = 60 ; i < 85 ; i++ ) {
+	for ( i = 75 ; i < 80 ; i++ ) {
 		p = 0.006*(i+1) ;
 		zturn = rtrace(2.0,2.5,6.0,p,&x,&t) ;
 		printf(" %10.4f %10.4f %10.4f %10.4f\n",p,x,t,zturn) ;
