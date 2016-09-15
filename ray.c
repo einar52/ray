@@ -64,8 +64,9 @@ void readVelModel( char *inputFile, VelModel *m )
 /*		printf("%10.4f %10.4f %6d \n",v[i],z[i],i ) ; */
 		more = (z[i] > zold) ;
 		if( vold == v[i]) rLog(0,"Constant velocity is not supported",NULL) ;
-		vold = v[i]; zold = z[i++] ; 
+		vold = v[i]; zold = z[i] ; 
 		if( i >=  MaxLayer ) more = 0 ;
+		if ( more ) i++ ;
 	} while  ( more ) ;
 	initVelModel( i, m ) ;
 	for( j = 0 ; j < i ; j++ ) {
