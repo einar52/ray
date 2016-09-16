@@ -122,7 +122,7 @@ double rtrace( double v1,double v2, double z, double p, double *x, double *t )
 double traceModel( double p , VelModel *m, double *time ) 
 {
 	int i,more ;
-	double x, v, z,dz,zz, xsum,t, tsum,vold,zold, vBottom ;
+	double x, v,vp, z,dz,zz, xsum,t, tsum,vold,zold, vBottom ;
 	vBottom = 1.0/p ;
 	xsum = 0.0 ; tsum = 0.0 ;
 	zold = m->z[0] ;
@@ -132,17 +132,21 @@ double traceModel( double p , VelModel *m, double *time )
 	do {
 		z = m->z[i] ;
 		v = m->v[i] ;
-		dz = z - zold ;
-		if( i == m->nVel ) {
-			
+		if( (i+1) == (m->nVel )) { /* if ray goes below last layer, extrapolate */
+			vp = 1.0/p  ;
+			if( vp > v ) {
+				z = zold + (vp-vold)*(z-zold)/(v-vold) ;
+				v = vp ;
+			}
 		}
+		dz = z - zold ;
 		zz = rtrace(vold,v,dz,p,&x,&t) ;
 		printf("t =%12.5f z =%12.5f zz =%12.5f x =%12.5f \n",t,z,zz,x) ;
 		vold = v ;
 		zold = z ;
 		xsum += x ;  tsum += t ;
 		i++ ;
-		more = i < (m->nVel) ;
+		more = (i < (m->nVel)) && ( zz == 0.0 ) ;
 	} while (more) ;
 	*time = tsum+tsum ;
 	printf("tsum=%12.6f xsum=%12.6f\n",tsum,xsum) ;
@@ -159,6 +163,7 @@ void testVel()
 	n = m.nVel ;
 	vmax = m.v[n-1] ;
 	p = 1.01/vmax ;
+	p = 1.01/6.5 ;
 	x = traceModel(p,&m,&t) ;
 	
 }
