@@ -119,11 +119,16 @@ double rtrace( double v1,double v2, double z, double p, double *x, double *t )
 	*t = b1 * log( si2 * (1.0+co1)/(si1*(1.0+co2))) ;
 	return( zturn) ;
 }
-double traceModel( double p , VelModel *m, double *time ) 
+
+double traceModel( double p , double zSource, VelModel *m, double *time ) 
 {
 	int i,more ;
-	double x, v,vp, z,dz,zz, xsum,t, tsum,vold,zold, vBottom ;
+	double x, v, z,zMax,dz,zz, xsum,t, tsum,vold,zold, vBottom ;
+	double tSource,xSource,vSource, xtotal ;
+	tSource = 0.0 ; xSource = 0.0 ;
 	vBottom = 1.0/p ;
+	zMax = m->z[(m->nVel)-1] ;
+	if( zSource <= 0.0 ) zSource = zMax+1.0 ;
 	xsum = 0.0 ; tsum = 0.0 ;
 	zold = m->z[0] ;
 	vold = m->v[0] ;
@@ -132,11 +137,18 @@ double traceModel( double p , VelModel *m, double *time )
 	do {
 		z = m->z[i] ;
 		v = m->v[i] ;
+		if( z >= zSource ) {
+			vSource = vold + (zSource - zold)*(v-vold)/(z-zold) ;
+			zz = rtrace(vold,vSource,zSource-zold,p,&x,&t ) ;
+		printf("t =%12.5f zSource =%12.5f zz =%12.5f x =%12.5f \n",t,zSource,zz,x) ;
+			xSource = x + xsum ;
+			tSource = t + tsum ;
+			zSource = zMax+1.0 ;
+		}
 		if( (i+1) == (m->nVel )) { /* if ray goes below last layer, extrapolate */
-			vp = 1.0/p  ;
-			if( vp > v ) {
-				z = zold + (vp-vold)*(z-zold)/(v-vold) ;
-				v = vp ;
+			if( vBottom > v ) {
+				z = zold + (vBottom-vold)*(z-zold)/(v-vold) ;
+				v = vBottom ;
 			}
 		}
 		dz = z - zold ;
@@ -148,11 +160,37 @@ double traceModel( double p , VelModel *m, double *time )
 		i++ ;
 		more = (i < (m->nVel)) && ( zz == 0.0 ) ;
 	} while (more) ;
-	*time = tsum+tsum ;
-	printf("tsum=%12.6f xsum=%12.6f\n",tsum,xsum) ;
-	return xsum+xsum ;
+	*time = tsum+tsum-tSource ;
+	xtotal = xsum+xsum - xSource ;
+	printf("tsum=%12.6f xsum=%12.6f\n",*time,xtotal) ;
+	return xtotal ;
 }
-
+double velZ( double z , VelModel *m, int *iLayer)
+{
+	int i ;
+	double v0,v1,z0,z1 ;
+	for ( i = 0 ; i < m->nVel ; ) {
+		if ( z < m->z[i] ) { i++ ; break ; } 
+		i++ ;
+	}
+	i-- ;
+	*iLayer = i - 1 ;
+	v0 = m->v[i-1] ;
+	v1 = m->v[i] ;
+	z0 = m->z[i-1] ;
+	z1 = m->z[i] ;
+	printf(" %g %g %g %g \n",z0,z1,v0,v1) ;
+	return v0 + (z-z0)*( v1-v0)/(z1-z0) ;
+}
+void testZ( VelModel *m)
+{
+	double z,v ;
+	int i ;
+	z = 3850 ;
+	z = 1.1 ;
+	v = velZ(z, m,&i ) ;
+	printf("z=%12.6f v = %12.6f i=%d\n",z,v,i ) ;
+}
 void testVel()
 {
 	VelModel m ;
@@ -163,9 +201,9 @@ void testVel()
 	n = m.nVel ;
 	vmax = m.v[n-1] ;
 	p = 1.01/vmax ;
-	p = 1.01/6.5 ;
-	x = traceModel(p,&m,&t) ;
-	
+	p = 1.00/7.4 ;
+        x = traceModel(p,5.99,&m,&t) ;
+	testZ( &m ) ;
 }
 void testRay()
 {
@@ -177,12 +215,11 @@ void testRay()
 		printf(" %10.4f %10.4f %10.4f %10.4f\n",p,x,t,zturn) ;
 	}
 }
-
 int main(int ac, char **av)
 {
 	int i ;
 	testVel() ;
-	testRay() ;
+/*	testRay() ;  */
 	return(0) ;
 }
 
