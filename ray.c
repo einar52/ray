@@ -117,6 +117,7 @@ double rtrace( double v1,double v2, double z, double p, double *x, double *t )
 	*x = r * ( co1 - co2 ) ;
 /*	*t = b1 * log( v1 * (1.0-co2)/(v2*(1.0-co1))) ;      */
 	*t = b1 * log( si2 * (1.0+co1)/(si1*(1.0+co2))) ;
+	printf("v1=%10.3f v2=%10.3f dz=%10.3f p=%10.3f x=%10.3f t=%10.3f\n",v1,v2,z,p,*x,*t) ;
 	return( zturn) ;
 }
 
@@ -174,7 +175,7 @@ double velZ( double z , VelModel *m, int *iLayer)
 		i++ ;
 	}
 	i-- ;
-	*iLayer = i - 1 ;
+	*iLayer = i ;
 	v0 = m->v[i-1] ;
 	v1 = m->v[i] ;
 	z0 = m->z[i-1] ;
@@ -182,12 +183,32 @@ double velZ( double z , VelModel *m, int *iLayer)
 	printf(" %g %g %g %g \n",z0,z1,v0,v1) ;
 	return v0 + (z-z0)*( v1-v0)/(z1-z0) ;
 }
+double traceUp( double p, double zSource, VelModel *m, double *tTime)
+{
+	int iLayer,i ;
+	double vSource,zold,vold,z,v,xResult,x,t,zz ;
+	vSource = velZ( zSource, m, &iLayer) ;
+	xResult = 0.0 ; *tTime = 0.0 ;
+	zold = zSource ;
+	vold = vSource ;
+	for( i = iLayer ; i > 0 ; ) {
+		i-- ;
+		z = m->z[i];
+		v = m->v[i];
+		zz = rtrace( v,vold,zold-z,p,&x,&t ) ;
+		*tTime += t ;
+		xResult += x ;
+		zold = z ; vold = v ;
+	}
+	return( xResult ) ;
+}
 void testZ( VelModel *m)
 {
 	double z,v ;
 	int i ;
 	z = 3850 ;
-	z = 1.1 ;
+	z = 5.99 ;
+	z = 0.4 ;
 	v = velZ(z, m,&i ) ;
 	printf("z=%12.6f v = %12.6f i=%d\n",z,v,i ) ;
 }
@@ -195,14 +216,17 @@ void testVel()
 {
 	VelModel m ;
 	int n ;
-	double vmax,p,t,x ;
+	double vmax,p,t,x,z ;
 	readVelModel("test.vel",&m) ;
 	printVelModel(&m) ;
 	n = m.nVel ;
 	vmax = m.v[n-1] ;
 	p = 1.01/vmax ;
 	p = 1.00/7.4 ;
-        x = traceModel(p,5.99,&m,&t) ;
+	z = 5.99 ;
+	z = 0.4 ;
+        x = traceModel(p,z,&m,&t) ;
+	x = traceUp(p,z,&m,&t) ;
 	testZ( &m ) ;
 }
 void testRay()
