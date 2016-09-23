@@ -202,6 +202,29 @@ double traceUp( double p, double zSource, VelModel *m, double *tTime)
 	}
 	return( xResult ) ;
 }
+double traceDown( double p, double zSource, VelModel *m, double *tTime)
+{
+	int iLayer,i ;
+	double vSource,zold,vold,z,v,xResult,x,t,zz ;
+	vSource = velZ( zSource, m, &iLayer) ;
+	xResult = 0.0 ; *tTime = 0.0 ;
+	zold = zSource ;
+	vold = vSource ;
+	printf("iLayer = %d m->nVel =%d \n",iLayer,m->nVel) ;
+	for( i = iLayer ; i < m->nVel ; i++) {
+		printf("%d ",i) ;
+		z = m->z[i];
+		v = m->v[i];
+		zz = rtrace( vold,v,z-zold,p,&x,&t ) ;
+		if( zz > 0.0 ) break ;
+		*tTime += t ;
+		xResult += x ;
+		zold = z ; vold = v ;
+	}
+
+	return( xResult ) ;
+}
+
 void testZ( VelModel *m)
 {
 	double z,v ;
@@ -222,11 +245,12 @@ void testVel()
 	n = m.nVel ;
 	vmax = m.v[n-1] ;
 	p = 1.01/vmax ;
-	p = 1.00/7.4 ;
+	p = 1.00/5.4 ;
 	z = 5.99 ;
 	z = 0.4 ;
         x = traceModel(p,z,&m,&t) ;
 	x = traceUp(p,z,&m,&t) ;
+	x = traceDown(p,z,&m,&t) ; 
 	testZ( &m ) ;
 }
 void testRay()
