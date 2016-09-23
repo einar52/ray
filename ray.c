@@ -9,6 +9,9 @@ typedef struct {
 	double *z ; /* depth  */
 	double *v ; /* velocity */
 } VelModel ;
+#define SURFACE	1
+#define RayUP	2
+#define ReyDown 3
 #define MaxLayer 1000
 void  rLog( int level, char *s1 , void *p )
 {
@@ -117,6 +120,7 @@ double rtrace( double v1,double v2, double z, double p, double *x, double *t )
 	*x = r * ( co1 - co2 ) ;
 /*	*t = b1 * log( v1 * (1.0-co2)/(v2*(1.0-co1))) ;      */
 	*t = b1 * log( si2 * (1.0+co1)/(si1*(1.0+co2))) ;
+	if( shLogLevel < 4 ) return( zturn ) ;
 	printf("v1=%10.3f v2=%10.3f dz=%10.3f p=%10.3f x=%10.3f t=%10.3f\n",v1,v2,z,p,*x,*t) ;
 	return( zturn) ;
 }
@@ -183,7 +187,7 @@ double velZ( double z , VelModel *m, int *iLayer)
 	printf(" %g %g %g %g \n",z0,z1,v0,v1) ;
 	return v0 + (z-z0)*( v1-v0)/(z1-z0) ;
 }
-double traceUp( double p, double zSource, VelModel *m, double *tTime)
+/*double traceUp( double p, double zSource, VelModel *m, double *tTime)
 {
 	int iLayer,i ;
 	double vSource,zold,vold,z,v,xResult,x,t,zz ;
@@ -223,8 +227,52 @@ double traceDown( double p, double zSource, VelModel *m, double *tTime)
 	}
 
 	return( xResult ) ;
-}
+}*/
 
+double traceUD( int mode, double p, double zSource, VelModel *m, double *tTime)
+{
+	int iLayer,i ;
+	double vSource,zold,vold,z,v,xResult,x,t,zz ;
+	double timeUp,xUp, timeDown,xDown ;
+	xUp = 0.0 ; timeUp = 0.0 ;
+	if( mode != SURFACE ) {
+		vSource = velZ( zSource, m, &iLayer) ;
+		zold = zSource ;
+		vold = vSource ;
+		for( i = iLayer ; i > 0 ; ) {
+			i-- ;
+			z = m->z[i];
+			v = m->v[i];
+			zz = rtrace( v,vold,zold-z,p,&x,&t ) ;
+			zold = z ; vold = v ;
+			timeUp += t ;
+			xUp += x ;
+		}
+		if( mode == RayUP ) {
+			*tTime = timeUp ;
+			return( xUp ) ;
+		}
+		zold = zSource ;
+		vold = vSource ;
+	} else {
+		zold = 0.0 ;
+		vold = m->v[0] ;
+		iLayer = 1 ;
+	}
+	timeDown = 0.0 ; xDown = 0.0 ;
+	for( i = iLayer ; i < m->nVel ; i++) {
+		printf("%d ",i) ;
+		z = m->z[i];
+		v = m->v[i];
+		zz = rtrace( vold,v,z-zold,p,&x,&t ) ;
+		if( zz > 0.0 ) break ;
+		timeDown += t ;
+		xDown    += x ;
+		zold = z ; vold = v ;
+	}
+	*tTime = timeUp + timeDown + timeDown ;
+	return( xUp + xDown + xDown ) ;
+}
 void testZ( VelModel *m)
 {
 	double z,v ;
@@ -246,11 +294,12 @@ void testVel()
 	vmax = m.v[n-1] ;
 	p = 1.01/vmax ;
 	p = 1.00/5.4 ;
-	z = 5.99 ;
 	z = 0.4 ;
+	z = 5.99 ;
         x = traceModel(p,z,&m,&t) ;
-	x = traceUp(p,z,&m,&t) ;
-	x = traceDown(p,z,&m,&t) ; 
+/*	x = traceUp(p,z,&m,&t) ;
+	x = traceDown(p,z,&m,&t) ;  */
+	x = traceUD(RayUP,p,z,&m,&t) ;
 	testZ( &m ) ;
 }
 void testRay()
@@ -263,10 +312,27 @@ void testRay()
 		printf(" %10.4f %10.4f %10.4f %10.4f\n",p,x,t,zturn) ;
 	}
 }
+void test2()
+{
+	VelModel m ;
+	int i,n ;
+	double pMax, depth,p,x,t ;
+	readVelModel("test.vel", &m) ;
+	printVelModel(&m) ;
+	depth = 4.5 ;
+	n = 6 ;
+	pMax = 1.0/velZ(depth,&m,&i) ;
+	for( i = n ; i < 2*n ; i++) {
+		p = (i+n)*pMax/(2*n) ;
+		x = traceUD(RayUP,p,depth,&m,&t) ;
+		printf("p=%10.4f x=%10.4f t=%10.4f\n") ;
+	}
+}
 int main(int ac, char **av)
 {
 	int i ;
-	testVel() ;
+	test2() ;
+/*	testVel() ; */
 /*	testRay() ;  */
 	return(0) ;
 }
