@@ -11,7 +11,7 @@ typedef struct {
 } VelModel ;
 #define SURFACE	1
 #define RayUP	2
-#define ReyDown 3
+#define RayDown 3
 #define MaxLayer 1000
 void  rLog( int level, char *s1 , void *p )
 {
@@ -261,14 +261,14 @@ double traceUD( int mode, double p, double zSource, VelModel *m, double *tTime)
 	}
 	timeDown = 0.0 ; xDown = 0.0 ;
 	for( i = iLayer ; i < m->nVel ; i++) {
-		printf("%d ",i) ;
+/*		printf("%d ",i) ; */
 		z = m->z[i];
 		v = m->v[i];
 		zz = rtrace( vold,v,z-zold,p,&x,&t ) ;
-		if( zz > 0.0 ) break ;
 		timeDown += t ;
 		xDown    += x ;
 		zold = z ; vold = v ;
+		if( zz > 0.0 ) break ;
 	}
 	*tTime = timeUp + timeDown + timeDown ;
 	return( xUp + xDown + xDown ) ;
@@ -316,16 +316,19 @@ void test2()
 {
 	VelModel m ;
 	int i,n ;
-	double pMax, depth,p,x,t ;
+	double pMax, depth,p,x,t,xd,td,xs,ts ;
 	readVelModel("test.vel", &m) ;
 	printVelModel(&m) ;
-	depth = 4.5 ;
-	n = 6 ;
+	depth = 3.8 ;
+	n = 5 ;
 	pMax = 1.0/velZ(depth,&m,&i) ;
-	for( i = n ; i < 2*n ; i++) {
-		p = (i+n)*pMax/(2*n) ;
+	for( i = 1 ; i < 2*n ; i++) {
+		p = i*pMax/(2*n) ;
 		x = traceUD(RayUP,p,depth,&m,&t) ;
-		printf("p=%10.4f x=%10.4f t=%10.4f\n") ;
+		xd = traceUD(RayDown,p,depth,&m,&td) ;
+		xs = traceUD(SURFACE,p,depth,&m,&ts) ;
+		printf("p=%10.4f x=%8.4f %8.4f %8.4f t=%8.4f %8.4f %8.4f\n",
+			p,x,xd,x+xd-xs,t,td,t+td-ts) ;
 	}
 }
 int main(int ac, char **av)
