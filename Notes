@@ -1,0 +1,8 @@
+
+Notes regarding tracing rays between surface and source at depth z.
+
+Max value for ray parameter is for horizontal ray at z, assuming 
+
+		v(d) < v(z) where d < z.
+
+

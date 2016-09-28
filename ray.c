@@ -2,17 +2,9 @@
 #include <stdlib.h>
 #include <math.h>
 #include <time.h>
+#include "ray.h"
 
-int shLogLevel = 4 ;
-typedef struct {
-	int nVel ;
-	double *z ; /* depth  */
-	double *v ; /* velocity */
-} VelModel ;
-#define SURFACE	1
-#define RayUP	2
-#define RayDown 3
-#define MaxLayer 1000
+int shLogLevel = 3 ;
 void  rLog( int level, char *s1 , void *p )
 {
         char buff[200] ;
@@ -184,7 +176,6 @@ double velZ( double z , VelModel *m, int *iLayer)
 	v1 = m->v[i] ;
 	z0 = m->z[i-1] ;
 	z1 = m->z[i] ;
-	printf(" %g %g %g %g \n",z0,z1,v0,v1) ;
 	return v0 + (z-z0)*( v1-v0)/(z1-z0) ;
 }
 /*double traceUp( double p, double zSource, VelModel *m, double *tTime)
@@ -281,7 +272,7 @@ void testZ( VelModel *m)
 	z = 5.99 ;
 	z = 0.4 ;
 	v = velZ(z, m,&i ) ;
-	printf("z=%12.6f v = %12.6f i=%d\n",z,v,i ) ;
+	printf("z=%12.6f v = %12.6f i=%d\n",z,v,i ) ; 
 }
 void testVel()
 {
@@ -318,7 +309,7 @@ void test2()
 	int i,n ;
 	double pMax, depth,p,x,t,xd,td,xs,ts ;
 	readVelModel("test.vel", &m) ;
-	printVelModel(&m) ;
+	if( shLogLevel > 3 )	printVelModel(&m) ; 
 	depth = 3.8 ;
 	n = 5 ;
 	pMax = 1.0/velZ(depth,&m,&i) ;
@@ -331,12 +322,15 @@ void test2()
 			p,x,xd,x+xd-xs,t,td,t+td-ts) ;
 	}
 }
+
+#ifdef DEBUG
 int main(int ac, char **av)
 {
 	int i ;
+	shLogLevel = 3 ;
 	test2() ;
 /*	testVel() ; */
 /*	testRay() ;  */
 	return(0) ;
 }
-
+#endif 
