@@ -91,6 +91,7 @@ double rtrace( double v1,double v2, double z, double p, double *x, double *t )
 	double si1, si2, co1, co2 ;
 	double z0, r, b, b1 ;
 	double zin, v2in,zturn ;
+	if( z <= 0.0 ) 	{ *t = 0.0, *x =0.0 ; return(0.0) ; }
 	si1 = p*v1 ;
 	if( si1 >= 1.0 ) return( -1.0 ) ;
 	si2 = p*v2 ;
