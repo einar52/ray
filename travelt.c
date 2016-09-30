@@ -32,17 +32,17 @@ void doIt()
 	mmode = RayDown ;
 	if( sourceDepth <= 0.0 ) mmode = SURFACE ; 
 	else for( i = 0 ; i < nPoint ; i++) {
-		p = (i + 0.9) *pMax / nPoint ;
-		x = traceUD( RayUP, p, sourceDepth, &m, &t ) ;
-		fprintf(ofd,"%10.5f %10.5f %6d\n",x,t-x*reduce,i) ;
+		p = (i + 0.4002) *pMax / nPoint ;
+		x = traceUD( RayUP, p, sourceDepth, &m, &t) ;
+		fprintf(ofd,"%10.5f %10.5f %6d %10.6f\n",x,t-x*reduce,i,p) ;
 	}
 	pBottom = 1.0/velZ(bottomDepth,&m,&il) ;
 	dp = pMax - pBottom ;
 	for( i = 0 ; i < nPoint ; i++) {
 /*		p = pMax - (i+0.1)*dp/nPoint ;  */
-		p = 1.0/velZ( sourceDepth + (i+0.5)*(bottomDepth-sourceDepth)/nPoint,&m,&il);   
-		x = traceUD( mmode , p, sourceDepth, &m, &t ) ; 
-		fprintf(ofd,"%10.5f %10.5f %6d\n",x,t-x*reduce,i) ;
+		p = 1.0/velZ( sourceDepth + (i+0.5002)*(bottomDepth-sourceDepth)/nPoint,&m,&il);   
+		x = traceUD( mmode , p, sourceDepth, &m, &t) ; 
+		fprintf(ofd,"%10.5f %10.5f %6d %10.6f %10.4f\n",x,t-x*reduce,i,p,zBottom) ;
 	} 
 	fclose(ofd) ;
 }
@@ -52,14 +52,11 @@ void makeOutputName( int i , char *a )
 	b = outputName ; 
 	if(*a == '.') a++ ;
 	if(*a == '/') a++ ;
-	b=strcpy(b,"PL_") ; b += 3 ;
+	b=strcpy(b,"P") ; b += 1 ;
 	while ( i > 0 ) {
 		*b = *a++ ;
-		if( *b == 0 ) { *b = '_' ; i-- ; }
-		if( *b == '-' ) b-- ;
-		b++ ;
+		if( *b++ == 0 ) { b-- ; i-- ; }
 	} 
-	*(--b) = 0 ;
 }
 int main(int ac , char **av ) 
 {

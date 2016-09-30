@@ -4,6 +4,7 @@
 #include <time.h>
 #include "ray.h"
 
+double zBottom ; 
 int shLogLevel = 3 ;
 void  rLog( int level, char *s1 , void *p )
 {
@@ -34,6 +35,25 @@ void printVelModel( VelModel *m )
 	printf("nVel = %d\n",m->nVel ) ;
 	for( i = 0 ; i < m->nVel ; i++) 
 		printf("%10.4f %10.4f %6d \n",*(m->z+i),*(m->v+i),i ) ;
+}
+VelModel resampleVelModel( VelModel *mIn, double dz, int nz ) 
+{
+	VelModel m ;
+	initVelModel(nz+3,&m) ;
+	double z0,z1,z2,z3, v0,v1,v2,v3,z ;
+	int i,j ;
+	z1 = mIn->z[0] ;
+	z1 = mIn->z[0] ;
+	v2 = mIn->v[1] ;
+	z2 = mIn->z[1] ;
+	v3 = mIn->v[2] ;
+	v3 = mIn->v[2] ;
+	z0 = z1+z1-z2 ;
+	v0 = v1+v1-v2 ;
+	z = z1 ;
+	j = 3 ;
+
+	return m ;
 }
 void readVelModel( char *inputFile, VelModel *m )
 /*
@@ -179,53 +199,12 @@ double velZ( double z , VelModel *m, int *iLayer)
 	z1 = m->z[i] ;
 	return v0 + (z-z0)*( v1-v0)/(z1-z0) ;
 }
-/*double traceUp( double p, double zSource, VelModel *m, double *tTime)
-{
-	int iLayer,i ;
-	double vSource,zold,vold,z,v,xResult,x,t,zz ;
-	vSource = velZ( zSource, m, &iLayer) ;
-	xResult = 0.0 ; *tTime = 0.0 ;
-	zold = zSource ;
-	vold = vSource ;
-	for( i = iLayer ; i > 0 ; ) {
-		i-- ;
-		z = m->z[i];
-		v = m->v[i];
-		zz = rtrace( v,vold,zold-z,p,&x,&t ) ;
-		*tTime += t ;
-		xResult += x ;
-		zold = z ; vold = v ;
-	}
-	return( xResult ) ;
-}
-double traceDown( double p, double zSource, VelModel *m, double *tTime)
-{
-	int iLayer,i ;
-	double vSource,zold,vold,z,v,xResult,x,t,zz ;
-	vSource = velZ( zSource, m, &iLayer) ;
-	xResult = 0.0 ; *tTime = 0.0 ;
-	zold = zSource ;
-	vold = vSource ;
-	printf("iLayer = %d m->nVel =%d \n",iLayer,m->nVel) ;
-	for( i = iLayer ; i < m->nVel ; i++) {
-		printf("%d ",i) ;
-		z = m->z[i];
-		v = m->v[i];
-		zz = rtrace( vold,v,z-zold,p,&x,&t ) ;
-		if( zz > 0.0 ) break ;
-		*tTime += t ;
-		xResult += x ;
-		zold = z ; vold = v ;
-	}
-
-	return( xResult ) ;
-}*/
-
 double traceUD( int mode, double p, double zSource, VelModel *m, double *tTime)
 {
 	int iLayer,i ;
 	double vSource,zold,vold,z,v,xResult,x,t,zz ;
 	double timeUp,xUp, timeDown,xDown ;
+	zBottom = 0.0 ;
 	xUp = 0.0 ; timeUp = 0.0 ;
 	if( mode != SURFACE ) {
 		vSource = velZ( zSource, m, &iLayer) ;
@@ -262,6 +241,7 @@ double traceUD( int mode, double p, double zSource, VelModel *m, double *tTime)
 		zold = z ; vold = v ;
 		if( zz > 0.0 ) break ;
 	}
+	zBottom = zold - zz ;
 	*tTime = timeUp + timeDown + timeDown ;
 	return( xUp + xDown + xDown ) ;
 }

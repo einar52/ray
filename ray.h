@@ -1,5 +1,6 @@
 
 extern int shLogLevel ;
+extern double zBottom ;
 typedef struct {
 	int nVel ;
 	double *z ; /* depth  */
