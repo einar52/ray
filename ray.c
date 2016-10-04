@@ -70,12 +70,12 @@ VelModel resampleVelModel( VelModel *mIn, double dz, int nz )
 	v3 = mIn->v[2] ;
 	z0 = z1+z1-z2 ;
 	v0 = v1+v1-v2 ;
+	s1 = (z2-z1)*(v2-v0)/(z2-z0) ;
+	s2 = (z2-z1)*(v1-v3)/(z3-z1) ;
 	z = z1 ;
 	j = 3 ;
 	for( i = 0 ; i < nz ; i++) {
 		x = (z-z1)/(z2-z1) ;
-		s1 = (z2-z1)*(v2-v0)/(z2-z0) ;
-		s2 = (z2-z1)*(v1-v3)/(z3-z1) ;
 		m.z[i] = z ;
 		m.v[i] = spline2(x,v1,s1) + spline2(1.0-x,v2,s2) ;
 		z += dz ;
@@ -84,6 +84,8 @@ VelModel resampleVelModel( VelModel *mIn, double dz, int nz )
 			z1 = z2 ; v1 = v2 ;
 			z2 = z3 ; v2 = v3 ;
 			z3 = mIn->z[j] ; v3 = mIn->v[j++] ;
+			s1 = (z2-z1)*(v2-v0)/(z2-z0) ;
+			s2 = (z2-z1)*(v1-v3)/(z3-z1) ;
 			if( j >= mIn->nVel ) {
 				m.nVel = i ;
 				return(m) ;
