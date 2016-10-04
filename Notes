@@ -5,4 +5,29 @@ Max value for ray parameter is for horizontal ray at z, assuming
 
 		v(d) < v(z) where d < z.
 
+***************** spline derivateon
+Spline  f1 =   a0 + a1 * x + a2*x*x + a3 * x*x*x
+        f1'      a1     +2*a2*x  + 3*a3 * x * x
 
+a)	1 = a0
+b)	0 = a0 + a1 + a2 + a3
+c)      0 = a1
+d)      0 = a1 + 2 a2 + 3 a3
+
+using a and c: 
+e)      0 = 1 + a2 + a3
+f)     0 = 2 a2 + 3 a3 
+double e and subtract from f:
+       0 = -2  +  a3 = > a3 = 2
+		         a2 =   -3
+
+Spline  f2 =   a0 + a1 * x + a2*x*x + a3 * x*x*x
+        f2'      a1     +2*a2*x  + 3*a3 * x * x
+
+f2(0) = 0 , f2(1) = 0 , f2'(0 = 1 ; f2'(1) = 0
+
+a0 = 0 ;   a1 = 1 ;  0 = 1 + a2 + a3 ; 0 = 1 + 2* a2 + 3* a3
+double and sbtract:     0 = 1-2  + a3 => a3 = 1, a2 = -2 =>
+    f2 = x - 2 * x * x + x*x*x
+
+****************** end of spline derivation

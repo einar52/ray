@@ -36,23 +36,61 @@ void printVelModel( VelModel *m )
 	for( i = 0 ; i < m->nVel ; i++) 
 		printf("%10.4f %10.4f %6d \n",*(m->z+i),*(m->v+i),i ) ;
 }
+double spline2(double x, double y, double yy )
+{
+	double x2,x3,res ;
+	x2 = x*x ;
+	x3 = x2*x ;
+	res = y * ( 1.0 - 3.0 * x2 + 2.0 * x3 ) ;
+	res += yy * (  x - x2 - x2 + x3 ) ;
+	return(res) ;
+}
+void splineTest()
+{
+	double x ;
+	int n,i ;
+	n = 200 ;
+	for(i = 0 ; i <= n ; i++) {
+		x = (i * 1.0) / n ;
+		printf("%6d %10.4f %10.4f  %10.4f \n",i,x, spline2(x,1.0,0.0), spline2(x,0.0,1.0) );
+	}
+}
 VelModel resampleVelModel( VelModel *mIn, double dz, int nz ) 
 {
 	VelModel m ;
 	initVelModel(nz+3,&m) ;
 	double z0,z1,z2,z3, v0,v1,v2,v3,z ;
+	double x,s1,s2 ;
 	int i,j ;
 	z1 = mIn->z[0] ;
-	z1 = mIn->z[0] ;
-	v2 = mIn->v[1] ;
 	z2 = mIn->z[1] ;
-	v3 = mIn->v[2] ;
+	z3 = mIn->z[2] ;
+	v1 = mIn->v[0] ;
+	v2 = mIn->v[1] ;
 	v3 = mIn->v[2] ;
 	z0 = z1+z1-z2 ;
 	v0 = v1+v1-v2 ;
 	z = z1 ;
 	j = 3 ;
-
+	for( i = 0 ; i < nz ; i++) {
+		x = (z-z1)/(z2-z1) ;
+		s1 = (z2-z1)*(v2-v0)/(z2-z0) ;
+		s2 = (z2-z1)*(v1-v3)/(z3-z1) ;
+		m.z[i] = z ;
+		m.v[i] = spline2(x,v1,s1) + spline2(1.0-x,v2,s2) ;
+		z += dz ;
+		while( z >= z2 ) {
+			z0 = z1 ; v0 = v1 ;
+			z1 = z2 ; v1 = v2 ;
+			z2 = z3 ; v2 = v3 ;
+			z3 = mIn->z[j] ; v3 = mIn->v[j++] ;
+			if( j >= mIn->nVel ) {
+				m.nVel = i ;
+				return(m) ;
+			}
+		}
+	}
+	m.nVel = nz ;
 	return m ;
 }
 void readVelModel( char *inputFile, VelModel *m )

@@ -15,6 +15,8 @@ double bottomDepth = 15 ;
 double velReduce = 7.0 ;
 int nPoint = 10 ;
 
+int nResample = 0 ;
+double dzResample ; 
 char outputName[300] ;
 VelModel m ;
 
@@ -27,6 +29,7 @@ void doIt()
 	if( velReduce > 0.0 ) reduce = 1.0/velReduce ; else reduce = 0.0 ;
 	initVelModel(200, &m  ) ;
 	readVelModel(velFile, &m) ;
+	if( nResample > 1 ) { m = resampleVelModel(&m,dzResample,nResample); }  
 	if( shLogLevel > 3 ) printVelModel( &m) ;
 	pMax = 1.0/velZ(sourceDepth,&m,&il ) ;
 	mmode = RayDown ;
@@ -63,7 +66,7 @@ int main(int ac , char **av )
 	extern char *optarg ;
 	extern int optind ;
 	int cc ;
-	while( EOF != (cc = getopt(ac,av,"f:l:d:n:b:v:o:hH?"))) {
+	while( EOF != (cc = getopt(ac,av,"f:l:d:n:b:v:o:sr:hH?"))) {
 		switch(cc) {
 		case 'f':	velFile=optarg ; break ;
 		case 'l' :	shLogLevel = atoi(optarg) ; break ;
@@ -72,6 +75,8 @@ int main(int ac , char **av )
 		case 'b' : 	bottomDepth = atof(optarg) ; break ;
 		case 'v' :	velReduce = atof(optarg) ; break ;
 		case 'o' :	strcpy( outputName,optarg) ; break ;
+		case 's' : 	splineTest() ; break ;
+		case 'r' :	nResample = atoi(optarg) ; dzResample = atof(av[optind++]) ; break ;
 	}}
 	if( 0 == *outputName )  makeOutputName(ac,*av) ; 
 	fprintf(stderr,"_%s_\n",outputName) ;

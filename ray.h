@@ -18,3 +18,5 @@ double rtrace( double v1,double v2, double z, double p, double *x, double *t );
 double traceModel( double p , double zSource, VelModel *m, double *time ) ;
 double velZ( double z , VelModel *m, int *iLayer);
 double traceUD( int mode, double p, double zSource, VelModel *m, double *tTime);
+VelModel resampleVelModel( VelModel *mIn, double dz, int nz )  ;
+
