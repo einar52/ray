@@ -35,7 +35,7 @@ void doIt()
 	mmode = RayDown ;
 	if( sourceDepth <= 0.0 ) mmode = SURFACE ; 
 	else for( i = 0 ; i < nPoint ; i++) {
-		p = (i + 0.4002) *pMax / nPoint ;
+		p = (i + 0.8) *pMax / nPoint ;
 		x = traceUD( RayUP, p, sourceDepth, &m, &t) ;
 		fprintf(ofd,"%10.5f %10.5f %6d %10.6f\n",x,t-x*reduce,i,p) ;
 	}
@@ -43,7 +43,7 @@ void doIt()
 	dp = pMax - pBottom ;
 	for( i = 0 ; i < nPoint ; i++) {
 /*		p = pMax - (i+0.1)*dp/nPoint ;  */
-		p = 1.0/velZ( sourceDepth + (i+0.5002)*(bottomDepth-sourceDepth)/nPoint,&m,&il);   
+		p = 1.0/velZ( sourceDepth + (i+0.2)*(bottomDepth-sourceDepth)/nPoint,&m,&il);   
 		x = traceUD( mmode , p, sourceDepth, &m, &t) ; 
 		fprintf(ofd,"%10.5f %10.5f %6d %10.6f %10.4f\n",x,t-x*reduce,i,p,zBottom) ;
 	} 

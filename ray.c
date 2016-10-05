@@ -26,6 +26,7 @@ void  rLog( int level, char *s1 , void *p )
 void initVelModel( int nVel , VelModel *m )
 {
 	m->nVel = nVel ;
+	m->p = 0.0 ;
 	m->z = ( double *) calloc( sizeof(double ) , nVel ) ;
 	m->v = ( double *) calloc( sizeof(double ) , nVel ) ;
 }
@@ -158,7 +159,9 @@ double rtrace( double v1,double v2, double z, double p, double *x, double *t )
 	double si1, si2, co1, co2 ;
 	double z0, r, b, b1 ;
 	double zin, v2in,zturn ;
+/*	printf("z = %12.5e %12.5e ",z ,(v2-v1)/v1 ) ;  */
 	if( z <= 0.0 ) 	{ *t = 0.0, *x =0.0 ; return(0.0) ; }
+	if( v1 == v2 ) 	{ *t = 0.0, *x =0.0 ; return(0.0) ; }
 	si1 = p*v1 ;
 	if( si1 >= 1.0 ) return( -1.0 ) ;
 	si2 = p*v2 ;
@@ -291,6 +294,26 @@ double traceUD( int mode, double p, double zSource, VelModel *m, double *tTime)
 	zBottom = zold - zz ;
 	*tTime = timeUp + timeDown + timeDown ;
 	return( xUp + xDown + xDown ) ;
+}
+double timeFromDist( VelModel *m, double x, double z, double *p )
+{
+	int ii,mode,n ;
+	double pMax,xPMax,z1,zx, t0,t1, dp, p0,p1, x1,x0 ; 
+	pMax = 1.0/velZ(z,m,&ii) ;
+	if( z <= 0.0 ) xPMax = 0.0 ;
+	else xPMax = traceUD(RayUP, pMax, z, m, &t0) ;
+	if( x > xPMax ) mode = RayDown ;else mode = RayUP ;
+	x0 = xPMax ;
+	p0 = pMax ;
+	p1 = 0.7 * p0 ;
+	n = 5 ;
+	while( n--) {
+		x1 = traceUD(mode,p1,z,m,&t1 ) ;
+		dp = ( x - x1 ) * ( p1 - p0 ) / ( x1 - x0 ) ;
+		p0 = p1 ;
+		x0 = x1 ;
+		p1 = p0 + dp ;
+	}
 }
 void testZ( VelModel *m)
 {
