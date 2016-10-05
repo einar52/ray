@@ -32,9 +32,11 @@ void initVelModel( int nVel , VelModel *m )
 void printVelModel( VelModel *m )
 {
 	int i ;
-	printf("nVel = %d\n",m->nVel ) ;
+	FILE *out ;
+	out = fopen("dump.vel","w") ;
 	for( i = 0 ; i < m->nVel ; i++) 
-		printf("%10.4f %10.4f %6d \n",*(m->z+i),*(m->v+i),i ) ;
+		fprintf(out,"%10.4f %10.4f %6d \n",*(m->z+i),*(m->v+i),i ) ;
+	fclose(out) ;
 }
 double spline2(double x, double y, double yy )
 {
@@ -58,7 +60,7 @@ void splineTest()
 VelModel resampleVelModel( VelModel *mIn, double dz, int nz ) 
 {
 	VelModel m ;
-	initVelModel(nz+3,&m) ;
+	initVelModel(nz+mIn->nVel,&m) ;
 	double z0,z1,z2,z3, v0,v1,v2,v3,z ;
 	double x,s1,s2 ;
 	int i,j ;
@@ -92,7 +94,12 @@ VelModel resampleVelModel( VelModel *mIn, double dz, int nz )
 			}
 		}
 	}
-	m.nVel = nz ;
+	j -= 2 ;
+	while ( j < mIn->nVel ) {
+		m.z[i] = mIn->z[j] ;
+		m.v[i++] = mIn->v[j++] ;
+	}
+	m.nVel = i ; 
 	return m ;
 }
 void readVelModel( char *inputFile, VelModel *m )

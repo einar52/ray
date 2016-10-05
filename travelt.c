@@ -30,7 +30,7 @@ void doIt()
 	initVelModel(200, &m  ) ;
 	readVelModel(velFile, &m) ;
 	if( nResample > 1 ) { m = resampleVelModel(&m,dzResample,nResample); }  
-	if( shLogLevel > 3 ) printVelModel( &m) ;
+	if( shLogLevel >= 3 ) printVelModel( &m) ;
 	pMax = 1.0/velZ(sourceDepth,&m,&il ) ;
 	mmode = RayDown ;
 	if( sourceDepth <= 0.0 ) mmode = SURFACE ; 
