@@ -20,4 +20,7 @@ double traceModel( double p , double zSource, VelModel *m, double *time ) ;
 double velZ( double z , VelModel *m, int *iLayer);
 double traceUD( int mode, double p, double zSource, VelModel *m, double *tTime);
 VelModel resampleVelModel( VelModel *mIn, double dz, int nz )  ;
+void splineTest() ;
+double timeFromDist( VelModel *m, double x, double z, double *p ) ;
+
 

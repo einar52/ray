@@ -2,7 +2,7 @@
 CFLAGS=-g
 
 tt : travelt 
-	./travelt -d 3
+	./travelt -d 3 -x 15
 
 T = travelt.o ray.o
 

@@ -7,6 +7,7 @@
 #include <math.h>
 #include <time.h>
 #include <string.h>
+#include <unistd.h>
 #include "ray.h"
 
 char *velFile = "silp.vel" ;
@@ -14,6 +15,7 @@ double sourceDepth = 4.5 ;
 double bottomDepth = 15 ;
 double velReduce = 7.0 ;
 int nPoint = 10 ;
+double xSolve,zSolve ;
 
 int nResample = 0 ;
 double dzResample ; 
@@ -22,7 +24,7 @@ VelModel m ;
 
 void doIt() 
 {
-	double pMax, pBottom, p , dp, x,t, reduce ;
+	double pMax, pBottom, p,pp , dp, x,t, reduce ;
 	int il,i, mmode ;
 	FILE *ofd ;
 	ofd = fopen(outputName,"w") ;
@@ -47,6 +49,7 @@ void doIt()
 		x = traceUD( mmode , p, sourceDepth, &m, &t) ; 
 		fprintf(ofd,"%10.5f %10.5f %6d %10.6f %10.4f\n",x,t-x*reduce,i,p,zBottom) ;
 	} 
+	if( 0.0 != xSolve) t = timeFromDist(&m,xSolve,sourceDepth,&pp) ;
 	fclose(ofd) ;
 }
 void makeOutputName( int i , char *a ) 
@@ -66,7 +69,7 @@ int main(int ac , char **av )
 	extern char *optarg ;
 	extern int optind ;
 	int cc ;
-	while( EOF != (cc = getopt(ac,av,"f:l:d:n:b:v:o:sr:hH?"))) {
+	while( EOF != (cc = getopt(ac,av,"f:l:d:n:b:v:o:sr:x:hH?"))) {
 		switch(cc) {
 		case 'f':	velFile=optarg ; break ;
 		case 'l' :	shLogLevel = atoi(optarg) ; break ;
@@ -77,6 +80,7 @@ int main(int ac , char **av )
 		case 'o' :	strcpy( outputName,optarg) ; break ;
 		case 's' : 	splineTest() ; break ;
 		case 'r' :	nResample = atoi(optarg) ; dzResample = atof(av[optind++]) ; break ;
+		case 'x' :      xSolve = atoi(optarg) ; break ;
 	}}
 	if( 0 == *outputName )  makeOutputName(ac,*av) ; 
 	fprintf(stderr,"_%s_\n",outputName) ;

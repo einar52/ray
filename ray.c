@@ -299,21 +299,31 @@ double timeFromDist( VelModel *m, double x, double z, double *p )
 {
 	int ii,mode,n ;
 	double pMax,xPMax,z1,zx, t0,t1, dp, p0,p1, x1,x0 ; 
+	double slope ;
 	pMax = 1.0/velZ(z,m,&ii) ;
 	if( z <= 0.0 ) xPMax = 0.0 ;
 	else xPMax = traceUD(RayUP, pMax, z, m, &t0) ;
 	if( x > xPMax ) mode = RayDown ;else mode = RayUP ;
 	x0 = xPMax ;
 	p0 = pMax ;
-	p1 = 0.7 * p0 ;
-	n = 5 ;
-	while( n--) {
+	p1 = 0.9 * p0 ;
+	n = 20 ;
+	printVelModel(m) ;
+	while( n-- ) {
 		x1 = traceUD(mode,p1,z,m,&t1 ) ;
-		dp = ( x - x1 ) * ( p1 - p0 ) / ( x1 - x0 ) ;
+		slope = ( p1 - p0 ) / ( x1 - x0 ) ;
+		dp = ( x - x1 ) * slope ;
 		p0 = p1 ;
 		x0 = x1 ;
 		p1 = p0 + dp ;
+		if(fabs(dp)*1.e8 < pMax) n = 0 ;
+		if( p1 > pMax ) p1 = 0.5*(p0 + pMax) ; 
+		if( p1 < 0.0 ) p1 = 0.5 * p0 ;
+		printf(
+"x1 = %8.4f p1 = %13.7f xPMax = %8.4f damp=%8.4f %4d %d slope=%9.5f\n",
+			x1,p1,xPMax,(p1-p0)/dp,n,mode,slope) ;
 	}
+	return( t1 ) ;
 }
 void testZ( VelModel *m)
 {
