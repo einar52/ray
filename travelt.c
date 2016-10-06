@@ -80,7 +80,7 @@ int main(int ac , char **av )
 		case 'o' :	strcpy( outputName,optarg) ; break ;
 		case 's' : 	splineTest() ; break ;
 		case 'r' :	nResample = atoi(optarg) ; dzResample = atof(av[optind++]) ; break ;
-		case 'x' :      xSolve = atoi(optarg) ; break ;
+		case 'x' :      xSolve = atof(optarg) ; break ;
 	}}
 	if( 0 == *outputName )  makeOutputName(ac,*av) ; 
 	fprintf(stderr,"_%s_\n",outputName) ;

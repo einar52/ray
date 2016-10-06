@@ -3,7 +3,6 @@ extern int shLogLevel ;
 extern double zBottom ;
 typedef struct {
 	int nVel ;
-	double p,x,t ; /* stored values, used in to help finding p and t from x */
 	double *z ; /* depth  */
 	double *v ; /* velocity */
 } VelModel ;

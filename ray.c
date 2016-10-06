@@ -26,7 +26,6 @@ void  rLog( int level, char *s1 , void *p )
 void initVelModel( int nVel , VelModel *m )
 {
 	m->nVel = nVel ;
-	m->p = 0.0 ;
 	m->z = ( double *) calloc( sizeof(double ) , nVel ) ;
 	m->v = ( double *) calloc( sizeof(double ) , nVel ) ;
 }
@@ -315,14 +314,17 @@ double timeFromDist( VelModel *m, double x, double z, double *p )
 		dp = ( x - x1 ) * slope ;
 		p0 = p1 ;
 		x0 = x1 ;
+		t0 = t1 ;
 		p1 = p0 + dp ;
-		if(fabs(dp)*1.e8 < pMax) n = 0 ;
+		if(( p1 < 0.8 * p0)&&( mode == RayDown) ) p1 = 0.8 * p0 ;
+		if(fabs(dp)*1.e7 < pMax) n = 0 ;
 		if( p1 > pMax ) p1 = 0.5*(p0 + pMax) ; 
 		if( p1 < 0.0 ) p1 = 0.5 * p0 ;
 		printf(
-"x1 = %8.4f p1 = %13.7f xPMax = %8.4f damp=%8.4f %4d %d slope=%9.5f\n",
-			x1,p1,xPMax,(p1-p0)/dp,n,mode,slope) ;
+"x1= %8.4f p1=%10.7f xPMax=%7.4f dp=%10.6f damp=%7.4f slope=%10.6f %d %2d\n",
+			x1,p1,xPMax,p1-p0,(p1-p0)/dp,slope,mode,n) ;
 	}
+	*p = p1 ;
 	return( t1 ) ;
 }
 void testZ( VelModel *m)
