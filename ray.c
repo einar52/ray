@@ -5,7 +5,7 @@
 #include "ray.h"
 
 double zBottom ; 
-int shLogLevel = 3 ;
+int shLogLevel = 5 ;
 void  rLog( int level, char *s1 , void *p )
 {
         char buff[200] ;
@@ -182,7 +182,7 @@ double rtrace( double v1,double v2, double z, double p, double *x, double *t )
 	*x = r * ( co1 - co2 ) ;
 /*	*t = b1 * log( v1 * (1.0-co2)/(v2*(1.0-co1))) ;      */
 	*t = b1 * log( si2 * (1.0+co1)/(si1*(1.0+co2))) ;
-	if( shLogLevel < 4 ) return( zturn ) ;
+	if( shLogLevel < 7 ) return( zturn ) ;
 	printf("v1=%10.3f v2=%10.3f dz=%10.3f p=%10.3f x=%10.3f t=%10.3f\n",v1,v2,z,p,*x,*t) ;
 	return( zturn) ;
 }
@@ -294,11 +294,12 @@ double traceUD( int mode, double p, double zSource, VelModel *m, double *tTime)
 	*tTime = timeUp + timeDown + timeDown ;
 	return( xUp + xDown + xDown ) ;
 }
-double timeFromDist( VelModel *m, double x, double z, double *p )
+double timeFromDist( VelModel *m, double x, double z, double *p, double *dtdx, double *dxdp )
 {
 	int ii,mode,n ;
 	double pMax,xPMax,z1,zx, t0,t1, dp, p0,p1, x1,x0 ; 
 	double slope ;
+	char buff[80] ;
 	pMax = 1.0/velZ(z,m,&ii) ;
 	if( z <= 0.0 ) xPMax = 0.0 ;
 	else xPMax = traceUD(RayUP, pMax, z, m, &t0) ;
@@ -306,8 +307,8 @@ double timeFromDist( VelModel *m, double x, double z, double *p )
 	x0 = xPMax ;
 	p0 = pMax ;
 	p1 = 0.9 * p0 ;
-	n = 20 ;
-	printVelModel(m) ;
+	n = 30 ;
+/*	printVelModel(m) ; */
 	while( n-- ) {
 		x1 = traceUD(mode,p1,z,m,&t1 ) ;
 		slope = ( p1 - p0 ) / ( x1 - x0 ) ;
@@ -317,14 +318,20 @@ double timeFromDist( VelModel *m, double x, double z, double *p )
 		t0 = t1 ;
 		p1 = p0 + dp ;
 		if(( p1 < 0.8 * p0)&&( mode == RayDown) ) p1 = 0.8 * p0 ;
-		if(fabs(dp)*1.e7 < pMax) n = 0 ;
+		if(fabs(dp)*1.e7 < pMax) break  ;
 		if( p1 > pMax ) p1 = 0.5*(p0 + pMax) ; 
 		if( p1 < 0.0 ) p1 = 0.5 * p0 ;
-		printf(
+		if( shLogLevel > 4 ) printf(
 "x1= %8.4f p1=%10.7f xPMax=%7.4f dp=%10.6f damp=%7.4f slope=%10.6f %d %2d\n",
 			x1,p1,xPMax,p1-p0,(p1-p0)/dp,slope,mode,n) ;
 	}
+	*dxdp = slope ;
+	*dtdx = (t1-t0)/(x1-x0) ;
 	*p = p1 ;
+	if(n<1) {
+		sprintf(buff,"%10.5f z=%10.5f",x,z) ;
+		rLog(2,"Solution in timeFromDist did not converge. x = %s",buff);
+	}
 	return( t1 ) ;
 }
 void testZ( VelModel *m)
