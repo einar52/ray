@@ -296,7 +296,8 @@ double traceUD( int mode, double p, double zSource, VelModel *m, double *tTime)
 }
 double timeFromDist( VelModel *m, double x, double z, double *p, double *dtdx, double *dxdp )
 {
-	int ii,mode,n ;
+	int ii,n ;
+	static int mode ;
 	double pMax,xPMax,z1,zx, t0,t1, dp, p0,p1, x1,x0 ; 
 	double slope ;
 	char buff[80] ;
@@ -321,7 +322,7 @@ double timeFromDist( VelModel *m, double x, double z, double *p, double *dtdx, d
 		if(fabs(dp)*1.e7 < pMax) break  ;
 		if( p1 > pMax ) p1 = 0.5*(p0 + pMax) ; 
 		if( p1 < 0.0 ) p1 = 0.5 * p0 ;
-		if( shLogLevel > 4 ) printf(
+		if( shLogLevel > 4 ) fprintf(stderr,
 "x1= %8.4f p1=%10.7f xPMax=%7.4f dp=%10.6f damp=%7.4f slope=%10.6f %d %2d\n",
 			x1,p1,xPMax,p1-p0,(p1-p0)/dp,slope,mode,n) ;
 	}
