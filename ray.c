@@ -314,12 +314,13 @@ double timeFromDist( VelModel *m, double x, double z, double *p, double *dtdx, d
 		x1 = traceUD(mode,p1,z,m,&t1 ) ;
 		slope = ( p1 - p0 ) / ( x1 - x0 ) ;
 		dp = ( x - x1 ) * slope ;
+		*dtdx = (t1-t0)/(x1-x0) ;
 		p0 = p1 ;
 		x0 = x1 ;
 		t0 = t1 ;
 		p1 = p0 + dp ;
 		if(( p1 < 0.8 * p0)&&( mode == RayDown) ) p1 = 0.8 * p0 ;
-		if(fabs(dp)*1.e7 < pMax) break  ;
+		if(fabs(dp)*1.e6 < pMax) break  ;
 		if( p1 > pMax ) p1 = 0.5*(p0 + pMax) ; 
 		if( p1 < 0.0 ) p1 = 0.5 * p0 ;
 		if( shLogLevel > 4 ) fprintf(stderr,
@@ -327,11 +328,13 @@ double timeFromDist( VelModel *m, double x, double z, double *p, double *dtdx, d
 			x1,p1,xPMax,p1-p0,(p1-p0)/dp,slope,mode,n) ;
 	}
 	*dxdp = slope ;
-	*dtdx = (t1-t0)/(x1-x0) ;
 	*p = p1 ;
 	if(n<1) {
+/*
 		sprintf(buff,"%10.5f z=%10.5f",x,z) ;
 		rLog(2,"Solution in timeFromDist did not converge. x = %s",buff);
+*/
+		*dxdp = 0.0 ;
 	}
 	return( t1 ) ;
 }
