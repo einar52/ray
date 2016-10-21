@@ -42,15 +42,19 @@ void doXList()
 void readFromTable()
 {
 	FILE *table ;
-	int i ;
+	char line[305] ;
+	int i,len ;
 	double x,z,t ;
 	double tt,dtdx,dxdp,p,dt,sum1,sigma ;
 	table = fopen(tableFile,"r") ;
 	sum1 = 0.0 ;
 	i = 0 ;
-	while( 3 == fscanf(table,"%lf %lf %lf",&x,&z,&t)) {
+	len = 300 ;
+	while(  fgets( line,len,table) ) {
+
+		sscanf(line,"%lf %lf %lf",&x,&z,&t) ;
 		tt = timeFromDist(&m,x,z,&p,&dtdx,&dxdp) ;
-		printf("%10.4f %10.4f %10.4f %10.4f %10.4 %10.5f\n",x,z,t,tt,tt-t,dxdp) ;
+		printf("%10.4f %10.4f %10.4f %10.4f %10.4f %10.5f %s",x,z,t,tt,t-tt,dxdp,line) ;
 		i++ ;
 		dt = tt-t ;
 		sum1 += dt*dt ;
