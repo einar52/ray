@@ -5,9 +5,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#define _GNU_SOURCE
+#include <fenv.h>
 #include <time.h>
 #include <string.h>
 #include <unistd.h>
+#include <signal.h>
 #include "ray.h"
 
 char *velFile = "silp.vel" ;
@@ -45,22 +48,26 @@ void readFromTable()
 	char line[305] ;
 	int i,len ;
 	double x,z,t ;
-	double tt,dtdx,dxdp,p,dt,sum1,sigma ;
+	double tt,dtdx,dxdp,p,dt,sum1,sigma,res,sum2,sigma2,drt ;
 	table = fopen(tableFile,"r") ;
 	sum1 = 0.0 ;
+	sum2 = 0.0 ;
 	i = 0 ;
 	len = 300 ;
 	while(  fgets( line,len,table) ) {
 
-		sscanf(line,"%lf %lf %lf",&x,&z,&t) ;
+		sscanf(line,"%lf %lf %lf %lf",&x,&z,&t,&res) ;
 		tt = timeFromDist(&m,x,z,&p,&dtdx,&dxdp) ;
-		printf("%10.4f %10.4f %10.4f %10.4f %10.4f %10.5f %s",x,z,t,tt,t-tt,dxdp,line) ;
+		printf("%10.4f %10.4f %10.4f %10.4f %8.3f %8.3f %10.5f %s",x,z,t,tt,t-tt,t-tt-res,dxdp,line) ;
 		i++ ;
 		dt = tt-t ;
 		sum1 += dt*dt ;
+		drt = tt-t-res ;
+		sum2 += drt*drt ;
 	}
 	sigma = sqrt(sum1/i ) ;
-	printf("n=%d zigma=%10.4f\n",i,sigma) ;
+	sigma2 = sqrt(sum2/i ) ;
+	printf("n=%d sigma=%10.4f sigma2=%8.3f\n",i,sigma,sigma2) ;
 }
 void doIt() 
 {
@@ -69,7 +76,7 @@ void doIt()
 	int il,i, mmode ;
 	FILE *ofd ;
 	ofd = fopen(outputName,"w") ;
-	if( velReduce > 0.0 ) reduce = 1.0/velReduce ; else reduce = 0.0 ;
+	if( velReduce > 0.0 ) reduce = 1.0/velReduce ; else reduce = 0.0 ; 
 	initVelModel(200, &m  ) ;
 	readVelModel(velFile, &m) ;
 	if( nResample > 1 ) { m = resampleVelModel(&m,dzResample,nResample); }  
@@ -117,6 +124,7 @@ int main(int ac , char **av )
 	extern char *optarg ;
 	extern int optind ;
 	int cc ;
+	feenableexcept(FE_INVALID) ;
 	while( EOF != (cc = getopt(ac,av,"f:l:d:n:b:v:o:sr:x:t:X:hH?"))) {
 		switch(cc) {
 		case 'f':	velFile=optarg ; break ;

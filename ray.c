@@ -162,10 +162,10 @@ double rtrace( double v1,double v2, double z, double p, double *x, double *t )
 	if( z <= 0.0 ) 	{ *t = 0.0, *x =0.0 ; return(0.0) ; }
 	if( v1 == v2 ) 	{ *t = 0.0, *x =0.0 ; return(0.0) ; }
 	si1 = p*v1 ;
-	if( si1 >= 1.0 ) return( -1.0 ) ;
+	if( si1 > 1.0 )/* return( -1.0 ) ;  */ abort() ;
 	si2 = p*v2 ;
 	zturn = 0.0 ;
-	if ( si2 >= 1.0 ) { 
+	if ( si2 > 1.0 ) { 
 		v2in = v2 ;
 		v2 = 1.0 / p ;
 		si2 = 1.0 ;
@@ -183,7 +183,8 @@ double rtrace( double v1,double v2, double z, double p, double *x, double *t )
 /*	*t = b1 * log( v1 * (1.0-co2)/(v2*(1.0-co1))) ;      */
 	*t = b1 * log( si2 * (1.0+co1)/(si1*(1.0+co2))) ;
 	if( shLogLevel < 7 ) return( zturn ) ;
-	printf("v1=%10.3f v2=%10.3f dz=%10.3f p=%10.3f x=%10.3f t=%10.3f\n",v1,v2,z,p,*x,*t) ;
+/*	if( fabs( *x ) < 0.00001 ) abort() ; */
+	fprintf(stderr,"v1=%10.3f v2=%10.3f dz=%10.3f p=%10.3f x=%10.3f t=%10.3f\n",v1,v2,z,p,*x,*t) ;
 	return( zturn) ;
 }
 
@@ -270,6 +271,9 @@ double traceUD( int mode, double p, double zSource, VelModel *m, double *tTime)
 		}
 		if( mode == RayUP ) {
 			*tTime = timeUp ;
+	                if( shLogLevel > 7 ) 
+                           fprintf(stderr,"Leaving traceUD(%d,1/%8.3f,%8.3f) returning %9.3f\n",
+		           mode,1.0/p,zSource,xUp) ;
 			return( xUp ) ;
 		}
 		zold = zSource ;
@@ -280,6 +284,7 @@ double traceUD( int mode, double p, double zSource, VelModel *m, double *tTime)
 		iLayer = 1 ;
 	}
 	timeDown = 0.0 ; xDown = 0.0 ;
+	if( shLogLevel > 7 ) fprintf(stderr,"iLayer=%d m->nVel=%d\n",iLayer,m->nVel) ;
 	for( i = iLayer ; i < m->nVel ; i++) {
 /*		printf("%d ",i) ; */
 		z = m->z[i];
@@ -288,18 +293,76 @@ double traceUD( int mode, double p, double zSource, VelModel *m, double *tTime)
 		timeDown += t ;
 		xDown    += x ;
 		zold = z ; vold = v ;
+		if(shLogLevel>7) fprintf(stderr,"zz =%8.2e\n",zz) ;
 		if( zz > 0.0 ) break ;
 	}
 	zBottom = zold - zz ;
 	*tTime = timeUp + timeDown + timeDown ;
+	if( shLogLevel > 7 ) fprintf(stderr,"Leaving traceUD(%d,1/%8.3f,%8.3f) returning %9.3f\n",
+		mode,1.0/p,zSource,xUp + xDown + xDown) ;
 	return( xUp + xDown + xDown ) ;
 }
 double timeFromDist( VelModel *m, double x, double z, double *p, double *dtdx, double *dxdp )
 {
+	int ii,mode,j,iIter ;
+	double pMax,xPMax, x1,x0, p1,p0,tt ;
+	double xOld,xNew,xx,pp,pNew,pOld,slope,damp,tOld ;
+	pMax = 1.0/velZ(z,m,&ii) ;
+	if(shLogLevel > 6 )fprintf(stderr,"vSource=%8.3f ii=%d\n",1.0/pMax,ii) ;
+	if( z <= 0.0 ) xPMax = 0.0 ;
+	else xPMax = traceUD(RayUP, pMax, z, m, &tt) ;
+	if( x > xPMax ) {
+		mode = RayDown ;
+		x0 = xPMax ;
+		p0 = pMax ;
+		for( j = ii ; j < m->nVel ; j++) {
+			p1 = 1.0/m->v[j] ;
+			p1 = p1*0.9999999 ; 
+			x1 = traceUD(RayDown,p1,z,m,&tt) ;
+			if( shLogLevel > 5 )
+			   printf("x1=%10.4f p1=%8.4f vel=%10.4f j=%d \n",x1,p1,1.0/p1,j) ;
+			if( x1 >= x ) break ;
+			x0 = x1 ;
+			p0 = p1 ;
+		} 
+	} else {
+		mode = RayUP ; 
+		x0 = 0.0 ; p0 = 0.0 ;
+		x1 = xPMax ; p1 = pMax ;
+	}
+	xOld = x0 ; pOld = p0 ;
+	xNew = x1 ; pNew = p1 ;
+	if(shLogLevel > 4 ) fprintf(stderr,"x0=%10.3f x=%10.3f x1=%10.3f\n",x0,x,x1) ;
+	for( iIter = 0 ; iIter < 35 ; iIter++) {
+		slope = ( pNew - pOld )/( xNew - xOld ) ;
+		pp = pNew + slope*( x- xNew ) ;
+		xx = traceUD(mode,pp,z,m,&tt) ;
+		if( xx < x0 ) {
+			pp = 0.5*(pNew + p0 )  ;
+			xx = traceUD(mode,pp,z,m,&tt) ;
+		} else if( xx > x1 ) {
+			pp = 0.5*(pNew + p1 ) ;
+			xx = traceUD(mode,pp,z,m,&tt) ;
+		}
+		if( fabs(xx-x) < 1.e-6 ) break ;
+		pOld = pNew, xOld = xNew ;
+		tOld = tt ;
+		xNew = xx ; pNew = pp ;
+		damp = (pNew-pOld)*slope/(xNew-xOld) ;
+		if( shLogLevel > 4 ) fprintf(stderr,
+"x1= %8.4f p1=%10.7f xPMax=%7.4f dp=%10.6f damp=%7.4f slope=%10.6f %d %2d\n",
+			xNew,pNew,xPMax,pNew-pOld,damp,slope,mode,iIter) ;
+	}
+	*dtdx = (tt-tOld)/(xNew-xOld) ;
+	*dxdp = (xNew-xOld)/(pNew-pOld) ;
+	return(tt);
+}
+double timeFromDistX( VelModel *m, double x, double z, double *p, double *dtdx, double *dxdp )
+{
 	int ii,n ;
 	static int mode ;
 	double pMax,xPMax,z1,zx, t0,t1, dp, p0,p1, x1,x0 ; 
-	double slope ;
+	double slope,damp ;
 	char buff[80] ;
 	pMax = 1.0/velZ(z,m,&ii) ;
 	if( z <= 0.0 ) xPMax = 0.0 ;
@@ -309,6 +372,7 @@ double timeFromDist( VelModel *m, double x, double z, double *p, double *dtdx, d
 	p0 = pMax ;
 	p1 = 0.9 * p0 ;
 	n = 30 ;
+	damp = 0.2 ;
 /*	printVelModel(m) ; */
 	while( n-- ) {
 		x1 = traceUD(mode,p1,z,m,&t1 ) ;
@@ -318,14 +382,15 @@ double timeFromDist( VelModel *m, double x, double z, double *p, double *dtdx, d
 		p0 = p1 ;
 		x0 = x1 ;
 		t0 = t1 ;
-		p1 = p0 + dp ;
+		p1 = p0 + dp*damp ;
 		if(( p1 < 0.8 * p0)&&( mode == RayDown) ) p1 = 0.8 * p0 ;
-		if(fabs(dp)*1.e6 < pMax) break  ;
+		if(fabs(dp)*1.e7 < pMax) break  ;
 		if( p1 > pMax ) p1 = 0.5*(p0 + pMax) ; 
 		if( p1 < 0.0 ) p1 = 0.5 * p0 ;
 		if( shLogLevel > 4 ) fprintf(stderr,
 "x1= %8.4f p1=%10.7f xPMax=%7.4f dp=%10.6f damp=%7.4f slope=%10.6f %d %2d\n",
 			x1,p1,xPMax,p1-p0,(p1-p0)/dp,slope,mode,n) ;
+		damp = 0.25*(1.0+3*damp) ;
 	}
 	*dxdp = slope ;
 	*p = p1 ;

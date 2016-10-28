@@ -5,7 +5,7 @@ station = []
 lat = []
 lon = []
 def readStations() :
-    ff = open("net.dat")
+    ff = open("../hau99/net.dat")
     fflines = ff.readlines()
     for l in fflines :
         ll = l.split()
@@ -37,7 +37,7 @@ def distSphere( la1,la2,dlon ) :
     dist = earthRadius * math.atan2(sind,cosd) 
     return(dist)
 def main() :
-    file = open("phase_good_1999.tbl")
+    file = open("../hau99/phase_good_1999.tbl")
     lines = file.readlines()
     n = 0
     for x in lines :
@@ -56,7 +56,7 @@ def main() :
          dist = float(l[8])
          res = float(l[6]) 
          depth = float(l[24]) 
-         if ( phase == 'p' ) :
+         if ( (phase == 'p') & ( depth > 2.5) ) :
 #            print  '%6.1f %6.1f %6.3f %6.2f' % ( distq,depth,time, res),l[0],l[1],l[2]
             print  '%6.1f %6.1f %6.3f %6.2f' % ( dist,depth,time, res),l[0],l[1],l[2],'%6.1f %4.1f'%(distq,dist-distq)
        n = n + 1
