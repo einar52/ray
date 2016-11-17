@@ -306,7 +306,7 @@ double timeFromDist( VelModel *m, double x, double z, double *p, double *dtdx, d
 {
 	int ii,mode,j,iIter ;
 	double pMax,xPMax, x1,x0, p1,p0,tt ;
-	double xOld,xNew,xx,pp,pNew,pOld,slope,damp,tOld ;
+	double xOld,xNew,xx,pp,pNew,pOld,slope,tOld ;
 	pMax = 1.0/velZ(z,m,&ii) ;
 	if(shLogLevel > 6 )fprintf(stderr,"vSource=%8.3f ii=%d\n",1.0/pMax,ii) ;
 	if( z <= 0.0 ) xPMax = 0.0 ;
@@ -327,7 +327,7 @@ double timeFromDist( VelModel *m, double x, double z, double *p, double *dtdx, d
 		} 
 	} else {
 		mode = RayUP ; 
-		x0 = 0.0 ; p0 = 0.0 ;
+		x0 = 0.0 ; p0 = pMax/10000.0 ;
 		x1 = xPMax ; p1 = pMax ;
 	}
 	xOld = x0 ; pOld = p0 ;
@@ -336,6 +336,7 @@ double timeFromDist( VelModel *m, double x, double z, double *p, double *dtdx, d
 	for( iIter = 0 ; iIter < 35 ; iIter++) {
 		slope = ( pNew - pOld )/( xNew - xOld ) ;
 		pp = pNew + slope*( x- xNew ) ;
+		if( pp >= pMax ) pp = 0.5*(pNew + pMax) ;
 		xx = traceUD(mode,pp,z,m,&tt) ;
 		if( xx < x0 ) {
 			pp = 0.5*(pNew + p0 )  ;
@@ -344,14 +345,13 @@ double timeFromDist( VelModel *m, double x, double z, double *p, double *dtdx, d
 			pp = 0.5*(pNew + p1 ) ;
 			xx = traceUD(mode,pp,z,m,&tt) ;
 		}
-		if( fabs(xx-x) < 1.e-6 ) break ;
+		if( fabs(xx-x) < 1.e-5 ) break ;
 		pOld = pNew, xOld = xNew ;
 		tOld = tt ;
 		xNew = xx ; pNew = pp ;
-		damp = (pNew-pOld)*slope/(xNew-xOld) ;
 		if( shLogLevel > 4 ) fprintf(stderr,
-"x1= %8.4f p1=%10.7f xPMax=%7.4f dp=%10.6f damp=%7.4f slope=%10.6f %d %2d\n",
-			xNew,pNew,xPMax,pNew-pOld,damp,slope,mode,iIter) ;
+"x1= %8.4f p1=%10.7f xPMax=%7.4f dp=%10.6f slope=%10.6f %d %2d\n",
+			xNew,pNew,xPMax,pNew-pOld,slope,mode,iIter) ;
 	}
 	*dtdx = (tt-tOld)/(xNew-xOld) ;
 	*dxdp = (xNew-xOld)/(pNew-pOld) ;

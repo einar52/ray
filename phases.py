@@ -17,6 +17,8 @@ def readStations() :
 import math
 earthRadius = 6366.8
 earthRadius = 6399.0
+earthRadius = 6394.0
+
 deg2rad = math.pi/180.0
 def distSphere( la1,la2,dlon ) :
     b1 = la1 * deg2rad
@@ -58,7 +60,7 @@ def main() :
          depth = float(l[24]) 
          if ( (phase == 'p') & ( depth > 2.5) ) :
 #            print  '%6.1f %6.1f %6.3f %6.2f' % ( distq,depth,time, res),l[0],l[1],l[2]
-            print  '%6.1f %6.1f %6.3f %6.2f' % ( dist,depth,time, res),l[0],l[1],l[2],'%6.1f %4.1f'%(distq,dist-distq)
+            print  '%6.1f %6.1f %6.3f %6.2f' % ( distq,depth,time, res),l[0],l[1],l[2],'%6.1f %4.1f'%(distq,dist-distq)
        n = n + 1
 #print "done"
 readStations()

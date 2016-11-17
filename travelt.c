@@ -58,11 +58,11 @@ void readFromTable()
 
 		sscanf(line,"%lf %lf %lf %lf",&x,&z,&t,&res) ;
 		tt = timeFromDist(&m,x,z,&p,&dtdx,&dxdp) ;
-		printf("%10.4f %10.4f %10.4f %10.4f %8.3f %8.3f %10.5f %s",x,z,t,tt,t-tt,t-tt-res,dxdp,line) ;
-		i++ ;
+		drt = tt-t+res ;
 		dt = tt-t ;
+		printf("%10.4f %10.4f %10.4f %10.4f %8.3f %8.3f %10.5f %s",x,z,t,tt,dt,drt,1.0/dxdp,line) ;
+		i++ ;
 		sum1 += dt*dt ;
-		drt = tt-t-res ;
 		sum2 += drt*drt ;
 	}
 	sigma = sqrt(sum1/i ) ;
