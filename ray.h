@@ -6,6 +6,11 @@ typedef struct {
 	double *z ; /* depth  */
 	double *v ; /* velocity */
 } VelModel ;
+
+typedef struct {
+	char name[4] ;
+	double lat,lon,depth ;
+} Station ;
 #define SURFACE	1
 #define RayUP	2
 #define RayDown 3
@@ -21,4 +26,7 @@ double traceUD( int mode, double p, double zSource, VelModel *m, double *tTime);
 VelModel resampleVelModel( VelModel *mIn, double dz, int nz )  ;
 void splineTest() ;
 double timeFromDist( VelModel *m, double x, double z, double *p, double *dtdx, double *dxdp) ;
+
+/*stations.c */
+Station *lookUpStation( char *name )  ;
 
