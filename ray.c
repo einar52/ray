@@ -161,6 +161,11 @@ double rtrace( double v1,double v2, double z, double p, double *x, double *t )
 /*	printf("z = %12.5e %12.5e ",z ,(v2-v1)/v1 ) ;  */
 	if( z <= 0.0 ) 	{ *t = 0.0, *x =0.0 ; return(0.0) ; }
 	if( v1 == v2 ) 	{ *t = 0.0, *x =0.0 ; return(0.0) ; }
+	if( p == 0 ) {
+		*t = z*log(v2/v1)/(v2-v1) ;
+		*x = 0.0 ;
+		return 0.0 ;
+	}
 	si1 = p*v1 ;
 	if( si1 > 1.0 )/* return( -1.0 ) ;  */ abort() ;
 	si2 = p*v2 ;
@@ -327,7 +332,7 @@ double timeFromDist( VelModel *m, double x, double z, double *p, double *dtdx, d
 		} 
 	} else {
 		mode = RayUP ; 
-		x0 = 0.0 ; p0 = pMax/10000.0 ;
+		x0 = 0.0 ; p0 = 0.0 ;
 		x1 = xPMax ; p1 = pMax ;
 	}
 	xOld = x0 ; pOld = p0 ;
@@ -436,8 +441,8 @@ void testRay()
 {
 	int i ;
 	double v1,v2,z,p,x,t,zturn ;
-	for ( i = 75 ; i < 80 ; i++ ) {
-		p = 0.006*(i+1) ;
+	for ( i = 0 ; i < 8 ; i++ ) {
+		p = 0.06*i ;
 		zturn = rtrace(2.0,2.5,6.0,p,&x,&t) ;
 		printf(" %10.4f %10.4f %10.4f %10.4f\n",p,x,t,zturn) ;
 	}
@@ -467,9 +472,9 @@ int main(int ac, char **av)
 {
 	int i ;
 	shLogLevel = 3 ;
-	test2() ;
+/*	test2() ;   */
 /*	testVel() ; */
-/*	testRay() ;  */
+	testRay() ;  
 	return(0) ;
 }
 #endif 

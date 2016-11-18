@@ -46,3 +46,4 @@ R         rms resdiual difference
 6394    12 ms
 6399    13 ms
 
+Nov 18:   Added handling of vertical rays (p = 0)
