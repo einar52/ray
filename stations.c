@@ -106,8 +106,10 @@ Station *lookUpStation( char *name )
 	p1 = statList + (NSTAT - 1 ) ;
 	while ( p0 < p1 ) {
 		pp = p0 + ( p1 - p0)/2 ;
-/*		printf("%s %s %s %s %2d %2d %2d\n",name,p0->name,pp->name,p1->name,
-			p0-statList,pp-statList,p1-statList) ; */
+#ifdef TEST
+		printf("%s %s %s %s %2d %2d %2d\n",name,p0->name,pp->name,p1->name,
+			p0-statList,pp-statList,p1-statList) ; 
+#endif
 		test = strcmp(pp->name,name) ;
 		if( 0 == test ) return pp ;
 		if( test > 0 ) p1 = pp ;

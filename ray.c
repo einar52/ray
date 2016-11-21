@@ -467,7 +467,7 @@ void test2()
 	}
 }
 
-#ifdef DEBUG
+#ifdef TEST
 int main(int ac, char **av)
 {
 	int i ;
