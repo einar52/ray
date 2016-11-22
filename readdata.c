@@ -15,10 +15,15 @@ int readData( FILE *fd, char **fields)
 	char *cp ;
 	nn = SIZE ;
 	cp = fgets(buffer,SIZE,fd) ;
+	if( cp == NULL ) {
+		fclose(fd) ;
+		return 0 ;
+	}
 	otype = isspace(' ') ;
 	i = 0 ;
 	while( *cp ) {
 		type = isspace(*cp) ;
+		if( type && (otype ==0) ) *cp = 0 ;
 		if(( type == 0) && otype) { fields[i++] = cp ;	}
 		otype = type ;
 		cp++ ;

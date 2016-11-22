@@ -1,20 +1,25 @@
 /*  compute distance between two points on a sphere (sDistance) or an
-    ellipsiod (gDistance) .
+    ellipsiod (gDistance) . Units are degrees and km.
+    for testing compile with -DTEST
+    Link: -lproj -lm
+
+    (C) Einar Kjartansson, November 2016
 */
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 #include <geodesic.h>
+#include "ray.h"
 
 #define A 6378.137
-#define F 1/298.257223563 /* WGS84 */
+#define F 1.0/298.257223563 /* WGS84 */
 #define deg2rad M_PI/180.0
-#define earthRadius 6391.57
+#define earthRadius 6391.57  /* best fit around 64.5 degrees latitude */
 
 struct geod_geodesic distance_g  ;
 int distance_I = 1 ;
 double gDistance(double la1, double la2, double dlon)
-{
+{	/* geodesic on surface of an ellipsoid */
 	double dist,az1,az2 ;
 	if( distance_I ) { geod_init(&distance_g,A,F) ;
 				distance_I = 0 ;
@@ -23,7 +28,7 @@ double gDistance(double la1, double la2, double dlon)
 	return dist ;
 }
 double sDistance(double la1, double la2, double dlon)
-{
+{	/* spherical approximation */
     double b1,b2,dlo,x1,z1,co2,x2,y2,z2,xp,yp,zp,sind,cosd,dist ;
     b1 = la1 * deg2rad ;
     b2 = la2 * deg2rad ;
@@ -56,7 +61,7 @@ speedTest()
 			dist = gDistance(la1,la2,dlon) ;
 		}
 	} 
-	/*  time for 10M calculations is about 7 seconds for gDistance and
+	/*  time for 10M distance calculations is about 7 seconds for gDistance and
 		1.25 seconds for sDistance */
 }
 main()

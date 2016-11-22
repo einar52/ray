@@ -30,3 +30,11 @@ double timeFromDist( VelModel *m, double x, double z, double *p, double *dtdx, d
 /*stations.c */
 Station *lookUpStation( char *name )  ;
 
+/* distance.c */
+double gDistance(double la1, double la2, double dlon);
+
+double sDistance(double la1, double la2, double dlon);
+
+/* readdata.c */
+int readData( FILE *fd, char **fields) ;
+
