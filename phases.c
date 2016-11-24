@@ -4,6 +4,7 @@
 #include <math.h>
 #include <time.h>
 #include <string.h>
+#include <fenv.h>
 #include "ray.h"
 VelModel mS, mP ;
 
@@ -44,6 +45,7 @@ void readPhases( char *filename)
 }
 
 int main(int ac, char **av) {
+/*	feenableexcept(FE_INVALID) ; */
 	shLogLevel = 2 ;
 	readPhases("../geysir/phase.dat") ;
 	return 0 ;

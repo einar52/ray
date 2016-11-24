@@ -11,6 +11,19 @@ typedef struct {
 	char name[4] ;
 	double lat,lon,depth ;
 } Station ;
+
+typedef struct {
+	long long index ;
+	Station *statP ;
+	double pTime ;
+	double weight ;
+	char type ;
+} Phase ;
+typedef struct {
+	long long index ;
+	double lat,lon,depth, timeShift ;
+} Solution ;
+
 #define SURFACE	1
 #define RayUP	2
 #define RayDown 3
