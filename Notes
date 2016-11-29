@@ -47,3 +47,4 @@ R         rms resdiual difference
 6399    13 ms
 
 Nov 18:   Added handling of vertical rays (p = 0)
+Nov 29:	Set up dayly backup to hekla using at and rsync.
