@@ -21,6 +21,33 @@ off_t testFileSize(char *fileName)
 	(void) close(fd) ;
 	return size ;
 }
+int readPhase(char *fileName, Phase *phases )
+{
+#define PHASELENGTH 31
+	int size,nPhase,i,nf ;
+	long long sIndex ;
+	char *line[300] ;
+	FILE *ffd ;
+	Phase *pp ;
+	size = testFileSize(fileName) ;
+	nPhase = size/PHASELENGTH ;
+	phases = (Phase*) malloc(sizeof(Phase)*nPhase) ;
+	pp = phases ;
+	ffd = fopen(fileName,"r") ;
+	while( nf = readData(ffd,line)) {
+		if( nf > 4 ) {
+			sIndex = strtoll(line[14],NULL,10) ;
+		} else {
+			pp->index = sIndex ;
+			pp->statP = lookUpStation(line[0]) ;
+			pp->type = *line[1] ;
+			pp->pTime = atof(line[1]) ;
+			pp->weight = atof(line[2]) ;
+		}
+		pp++ ;
+	}
+	return phases-pp ;
+}
 int readCtloc(char *fileName, Solution *solutions )
 {
 #define CTLINELENGTH 133 
@@ -28,18 +55,17 @@ int readCtloc(char *fileName, Solution *solutions )
 	char *line[300] ;
 	FILE *ffd ;
 	Solution *sp ;
-/*	char *fields[200] ; */
 	size = testFileSize(fileName) ;
 	nSol = size/CTLINELENGTH ;
+	ffd = fopen(fileName,"r") ;
 	solutions = (Solution*)  malloc(sizeof(Solution) * (nSol+5) ) ;
 	sp = solutions ;
-	ffd = fopen(fileName,"r") ;
 	while( nf = readData(ffd,line) ) {
 		sp->index = strtoll(line[0],NULL,10) ;
 		sp->lat = atof(line[3]) ;
 		sp->lon = atof(line[4]) ;
 		sp->depth = atof(line[5]) ;
-		sp++ ;
+		sp++ ; 
 	}
 	return sp-solutions ;
 /*
@@ -67,7 +93,7 @@ void testPhases( char *filename)
 	readVelModel("sils.vel",&mS) ;
 	fd = fopen(filename,"r") ;
 	if( NULL == fd ) rLog( 0,"unable to open phase file %s",(void *) filename) ;	
-	while(nf = readData(fd,line ) ) {
+	while(2<(nf = readData(fd,line ) )) {
 		if( nf > 4 ) {
 			lat = atof(line[7]) ;
 			lon = atof(line[8]) ;
@@ -87,12 +113,13 @@ void testPhases( char *filename)
 		}
 	}
 }
-
+#ifdef TEST
 int main(int ac, char **av) {
 	Solution  *sol ;
 /*	feenableexcept(FE_INVALID) ; */
 	shLogLevel = 2 ;
-	readCtloc("../geysir/ctloc2",sol) ;
 	testPhases("../geysir/phase.dat") ; 
+	readCtloc("../geysir/ctloc2",sol) ;
 	return 0 ;
 }
+#endif

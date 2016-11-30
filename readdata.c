@@ -41,6 +41,6 @@ int main()
 	n = readData(ff,(char **) &fields) ;
 	lat = atof(fields[7]) ;
 	printf("n=%d lat=%lf _%s_\n",n,lat,fields[7]) ;
-
+	return 0 ;
 }
 #endif
