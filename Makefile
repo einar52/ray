@@ -6,8 +6,8 @@ top : tp
 tt : travelt 
 	./travelt -d 3 -x 15
 
-tp : phases
-	./phases
+tp : phases 
+	./phases -r
 
 tr : 
 	cc -g -DTEST readdata.c

@@ -21,7 +21,7 @@ off_t testFileSize(char *fileName)
 	(void) close(fd) ;
 	return size ;
 }
-int readPhase(char *fileName, Phase *phases )
+int readPhases(char *fileName, Phase **phases )
 {
 #define PHASELENGTH 31
 	int size,nPhase,i,nf ;
@@ -31,24 +31,74 @@ int readPhase(char *fileName, Phase *phases )
 	Phase *pp ;
 	size = testFileSize(fileName) ;
 	nPhase = size/PHASELENGTH ;
-	phases = (Phase*) malloc(sizeof(Phase)*nPhase) ;
-	pp = phases ;
+	*phases = (Phase*) malloc(sizeof(Phase)*nPhase) ;
+	pp = *phases ;
 	ffd = fopen(fileName,"r") ;
+	if( ffd == NULL) rLog(1,"cannot open %s", (void *)fileName) ;
 	while( nf = readData(ffd,line)) {
 		if( nf > 4 ) {
 			sIndex = strtoll(line[14],NULL,10) ;
 		} else {
 			pp->index = sIndex ;
 			pp->statP = lookUpStation(line[0]) ;
-			pp->type = *line[1] ;
+			pp->type = *line[3] ;
 			pp->pTime = atof(line[1]) ;
 			pp->weight = atof(line[2]) ;
+			pp++ ;
 		}
-		pp++ ;
 	}
-	return phases-pp ;
+	return pp-*phases ;
 }
-int readCtloc(char *fileName, Solution *solutions )
+void printPhases( Phase *p, int n  ) 
+{
+	int i ;
+	printf("n = %d\n",n) ;
+	for ( i = 0 ; i< n ; i++) {
+/*		printf("%s %c %ld\n",p->statP->name,p->type,p->index) ; */
+		printf("%d %ld %s %8.3f %6.3f %c\n",i,p->index,p->statP->name,p->pTime,p->weight,p->type) ;
+		p++ ;
+	}
+}
+void printSol( Solution *p, int n )
+{
+	int i ;
+	for(i = 0 ; i < n ; i++) {
+		printf("%ld %10.6f %10.6f %8.3f %10.4f\n",
+			p->index,p->lat,p->lon,p->depth,p->timeShift) ;
+		p++ ;
+	}
+}
+int readReloc(char *fileName, Solution **solutions)
+#define RELLINELENGTH 183
+{
+	int size ,nSol, i,ii, nf ;
+	char *line[300] ;
+	FILE *ffd ;
+	Solution *sp ;
+	double ts,ti,dt ;
+	size = testFileSize(fileName) ;
+	nSol = size/RELLINELENGTH ;
+	ffd = fopen(fileName,"r") ;
+	if( ffd == NULL) rLog(1,"cannot open %s", (void *)fileName) ;
+	*solutions = (Solution*)  malloc(sizeof(Solution) * (nSol+5) ) ;
+	sp = *solutions ;
+	while( nf = readData(ffd,line)) {
+		sp->index = strtoll(line[0],NULL,10) ;
+		sp->lat = atof(line[1]) ;
+		sp->lon = atof(line[2]) ;
+		sp->depth = atof(line[3] ) ;
+		ts = atof(line[15] ) ;
+		ti = (sp->index % 100000 ) * 0.001 ;
+		dt = ts - ti ;
+		if( dt >  30.0 ) dt -= 60.0 ;
+		if( dt < -30.0 ) dt += 60.0 ;
+		sp->timeShift = dt ;
+		sp++ ;
+/*		printf("%s %s %8.4f %8.4f %8.4f\n",line[0],line[1], ts,ti,dt) ; */
+	}
+	return sp-*solutions ;
+}
+int readCtloc(char *fileName, Solution **solutions )
 {
 #define CTLINELENGTH 133 
 	int size ,nSol, i,ii, nf ;
@@ -58,8 +108,9 @@ int readCtloc(char *fileName, Solution *solutions )
 	size = testFileSize(fileName) ;
 	nSol = size/CTLINELENGTH ;
 	ffd = fopen(fileName,"r") ;
-	solutions = (Solution*)  malloc(sizeof(Solution) * (nSol+5) ) ;
-	sp = solutions ;
+	if( ffd == NULL) rLog(1,"cannot open %s", (void *)fileName) ;
+	*solutions = (Solution*)  malloc(sizeof(Solution) * (nSol+5) ) ;
+	sp = *solutions ;
 	while( nf = readData(ffd,line) ) {
 		sp->index = strtoll(line[0],NULL,10) ;
 		sp->lat = atof(line[3]) ;
@@ -67,7 +118,7 @@ int readCtloc(char *fileName, Solution *solutions )
 		sp->depth = atof(line[5]) ;
 		sp++ ; 
 	}
-	return sp-solutions ;
+	return sp-*solutions ;
 /*
 	ii = 0 ;
 	for( i = 0 ; i < nSol; i++) {
@@ -116,10 +167,22 @@ void testPhases( char *filename)
 #ifdef TEST
 int main(int ac, char **av) {
 	Solution  *sol ;
+	Phase *phases ;
+	int cc,n ;
 /*	feenableexcept(FE_INVALID) ; */
 	shLogLevel = 2 ;
-	testPhases("../geysir/phase.dat") ; 
-	readCtloc("../geysir/ctloc2",sol) ;
+	while( EOF != ( cc = getopt(ac,av,"tpcr"))) {
+	    switch(cc) {
+		case 't' : testPhases("../geysir/phase.dat") ;  break ;
+		case 'c' : readCtloc("../geysir/ctloc2",&sol) ; break ;
+		case 'r' : n = readReloc("../geysir/reloc2",&sol) ; 
+				printSol(sol,n) ;
+				break ;
+		case 'p' :  n = readPhases("../geysir/phase.dat",&phases) ;
+				printPhases(phases,n) ;
+				printf("n=%d\n",n) ;
+			break ;
+	}}
 	return 0 ;
 }
 #endif
