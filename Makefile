@@ -17,6 +17,10 @@ P =  ray.o readdata.o distance.o stations.o
 phases : $P phases.c
 	cc -DTEST phases.c $P -o phases -lproj -lm
 
+L = $P phases.o
+locate : $L locate.c
+	cc -o locate  -DTEST $L locate.c -lproj -lm
+
 T = travelt.o ray.o
 
 $T : ray.h

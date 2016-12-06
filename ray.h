@@ -41,6 +41,7 @@ void splineTest() ;
 double timeFromDist( VelModel *m, double x, double z, double *p, double *dtdx, double *dxdp) ;
 
 /*stations.c */
+
 Station *lookUpStation( char *name )  ;
 
 /* distance.c */
@@ -50,4 +51,11 @@ double sDistance(double la1, double la2, double dlon);
 
 /* readdata.c */
 int readData( FILE *fd, char **fields) ;
+/* phases.c */
+int readPhases(char *fileName, Phase **phases )  ;
+int readReloc(char *fileName, Solution **solutions) ;
+int readCtloc(char *fileName, Solution **solutions ) ;
+void printPhases( Phase *p, int n  ) ;
+void printSol( Solution *p, int n ) ;
 
+void  golubC(double *a, double *x, double *b, int m, int n) ;
