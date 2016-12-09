@@ -1,7 +1,7 @@
 
 CFLAGS=-g
 
-top : tp
+top : tl
 
 tt : travelt 
 	./travelt -d 3 -x 15
@@ -16,6 +16,9 @@ tr :
 P =  ray.o readdata.o distance.o stations.o
 phases : $P phases.c
 	cc -DTEST phases.c $P -o phases -lproj -lm
+
+tl : locate
+	locate 
 
 L = $P phases.o
 locate : $L locate.c

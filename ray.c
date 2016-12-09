@@ -312,6 +312,7 @@ double timeFromDist( VelModel *m, double x, double z, double *p, double *dtdx, d
 	int ii,mode,j,iIter ;
 	double pMax,xPMax, x1,x0, p1,p0,tt ;
 	double xOld,xNew,xx,pp,pNew,pOld,slope,tOld ;
+	double dxdt ;
 	pMax = 1.0/velZ(z,m,&ii) ;
 	if(shLogLevel > 6 )fprintf(stderr,"vSource=%8.3f ii=%d\n",1.0/pMax,ii) ;
 	if( z <= 0.0 ) xPMax = 0.0 ;
@@ -351,14 +352,16 @@ double timeFromDist( VelModel *m, double x, double z, double *p, double *dtdx, d
 			xx = traceUD(mode,pp,z,m,&tt) ;
 		}
 		if( fabs(xx-x) < 1.e-5 ) break ;
-		pOld = pNew, xOld = xNew ;
+		dxdt = ( xx-xNew)/(tt-tOld) ;
+		pOld = pNew; xOld = xNew ;
 		tOld = tt ;
 		xNew = xx ; pNew = pp ;
+		
 		if( shLogLevel > 4 ) fprintf(stderr,
-"x1= %8.4f p1=%10.7f xPMax=%7.4f dp=%10.6f slope=%10.6f %d %2d\n",
-			xNew,pNew,xPMax,pNew-pOld,slope,mode,iIter) ;
+"tt=%8.4f dxdt=%5.2f x1= %8.4f p1=%10.7f xPMax=%7.4f dp=%10.6f slope=%10.6f %d %2d\n",
+			tt,dxdt,xNew,pNew,xPMax,pNew-pOld,slope,mode,iIter) ;
 	}
-	*dtdx = (tt-tOld)/(xNew-xOld) ;
+	*dtdx = 1.0/dxdt ;
 	*dxdp = (xNew-xOld)/(pNew-pOld) ;
 	return(tt);
 }
