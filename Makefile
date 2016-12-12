@@ -20,7 +20,7 @@ phases : $P phases.c
 tl : locate
 	locate 
 
-L = $P phases.o
+L = $P phases.o golubc.o
 locate : $L locate.c
 	cc -o locate  -DTEST $L locate.c -lproj -lm
 
