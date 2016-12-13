@@ -11,6 +11,7 @@
 #include <fenv.h>
 #include "ray.h"
 
+#define INDEXEND 29990101011647938 /* sentinel at end of tables */
 VelModel mS, mP ;
 off_t testFileSize(char *fileName)
 {
@@ -31,7 +32,7 @@ int readPhases(char *fileName, Phase **phases )
 	Phase *pp ;
 	size = testFileSize(fileName) ;
 	nPhase = size/PHASELENGTH ;
-	*phases = (Phase*) malloc(sizeof(Phase)*nPhase) ;
+	*phases = (Phase*) malloc(sizeof(Phase)*(nPhase+4)) ;
 	pp = *phases ;
 	ffd = fopen(fileName,"r") ;
 	if( ffd == NULL) rLog(1,"cannot open %s", (void *)fileName) ;
@@ -47,6 +48,7 @@ int readPhases(char *fileName, Phase **phases )
 			pp++ ;
 		}
 	}
+	pp->index = INDEXEND ;
 	return pp-*phases ;
 }
 void printPhases( Phase *p, int n  ) 
@@ -96,6 +98,7 @@ int readReloc(char *fileName, Solution **solutions)
 		sp++ ;
 /*		printf("%s %s %8.4f %8.4f %8.4f\n",line[0],line[1], ts,ti,dt) ; */
 	}
+	sp->index = INDEXEND ;
 	return sp-*solutions ;
 }
 int readCtloc(char *fileName, Solution **solutions )
@@ -118,6 +121,7 @@ int readCtloc(char *fileName, Solution **solutions )
 		sp->depth = atof(line[5]) ;
 		sp++ ; 
 	}
+	sp->index = INDEXEND ;
 	return sp-*solutions ;
 /*
 	ii = 0 ;

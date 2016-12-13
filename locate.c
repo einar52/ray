@@ -111,7 +111,7 @@ doit()
 	readVelModel(sModel,&ms) ;
 	nPhases = readPhases(phaseFile,&phases ) ;
 	nLoc = readCtloc(solFile,&location) ;
-	lp = location + 5 ;
+	lp = location + 6 ;
 	index = lp->index ;
 	printf("index=%ld\n",index) ;
 	ip = phases ;

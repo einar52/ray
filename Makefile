@@ -1,7 +1,7 @@
 
 CFLAGS=-g
 
-top : tl
+top : trt
 
 tt : travelt 
 	./travelt -d 3 -x 15
@@ -19,6 +19,13 @@ phases : $P phases.c
 
 tl : locate
 	locate 
+
+R =  ray.o readdata.o distance.o stations.o phases.o reltest.o
+
+trt : reltest
+	reltest -r ../geysir/reloc2
+reltest : $R
+	cc -g -o reltest $R -lproj -lm
 
 L = $P phases.o golubc.o
 locate : $L locate.c
