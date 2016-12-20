@@ -23,6 +23,7 @@ typedef struct {
 	long long index ;
 	double lat,lon,depth, timeShift ;
 } Solution ;
+typedef struct { double x,z ; } DepthPoint ;
 
 #define SURFACE	1
 #define RayUP	2
@@ -37,6 +38,8 @@ double traceModel( double p , double zSource, VelModel *m, double *time ) ;
 double velZ( double z , VelModel *m, int *iLayer);
 double traceUD( int mode, double p, double zSource, VelModel *m, double *tTime);
 VelModel resampleVelModel( VelModel *mIn, double dz, int nz )  ;
+VelModel resampleVelModel2( VelModel *mIn, double dz, int nz )  ;
+/* resample velocity model using 2 point interpolation */
 void splineTest() ;
 double timeFromDist( VelModel *m, double x, double z, double *p, double *dtdx, double *dxdp) ;
 

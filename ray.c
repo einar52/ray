@@ -57,7 +57,43 @@ void splineTest()
 		printf("%6d %10.4f %10.4f  %10.4f \n",i,x, spline2(x,1.0,0.0), spline2(x,0.0,1.0) );
 	}
 }
+VelModel resampleVelModel2( VelModel *mIn, double dz, int nz ) 
+/* resample velocity model using 2 point interpolation */
+{
+	VelModel m ;
+	initVelModel(5+nz+mIn->nVel,&m) ;
+	double zMax,z0,z1,v0,v1,dzi ;
+	double dzz,vv,zz ;
+	int i,j,nn,jj ;
+	zMax = dz*nz ;
+	z0 = mIn->z[0] ;
+	v0 = mIn->v[0] ;
+	j = 0 ;
+	for( i = 1 ; i < mIn->nVel ; i++) {
+		z1 = mIn->z[i] ;
+		v1 = mIn->v[i] ;
+		dzi = z1-z0 ;
+		nn = 0.01 + (dzi/dz)  ;	
+		zz = z0 ;
+		if( nn  && ( zz < zMax ) ) {
+			dzz = dzi/nn ;
+			for( jj = 0 ; jj < nn ; jj++) {
+				vv = v0 + (zz-z0) * (v1-v0) / (z1-z0) ;
+				m.z[j] = zz ;
+				m.v[j++] = vv ;
+				zz += dzz ;
+				if( zz > zMax ) break ;
+			}
+		}
+		z0 = z1 ;
+		v0 = v1 ;
+	}
+	m.nVel = j ;
+	return  m ;
+}
+
 VelModel resampleVelModel( VelModel *mIn, double dz, int nz ) 
+/* resample velocity model using cubic interpolation */
 {
 	VelModel m ;
 	initVelModel(nz+mIn->nVel,&m) ;
@@ -254,6 +290,23 @@ double velZ( double z , VelModel *m, int *iLayer)
 	z1 = m->z[i] ;
 	return v0 + (z-z0)*( v1-v0)/(z1-z0) ;
 }
+#ifdef PLOTRAY
+int nRaypoints ;
+DepthPoint *rayPoints ;
+void rayPoint(double x, double z) 
+{
+	DepthPoint *rp ;
+	rp = rayPoints + nRaypoints++ ;
+	rp->x = x ; 
+	rp->z = z ;
+}
+/* void rayPoint(double x, double z)
+{
+	static FILE *ff ;
+	if( NULL == ff ) ff = fopen("ray.points","w") ;
+	fprintf(ff,"%10.3f %10.3f\n",x,z) ;
+} */
+#endif
 double traceUD( int mode, double p, double zSource, VelModel *m, double *tTime)
 {
 	int iLayer,i ;
@@ -265,6 +318,9 @@ double traceUD( int mode, double p, double zSource, VelModel *m, double *tTime)
 		vSource = velZ( zSource, m, &iLayer) ;
 		zold = zSource ;
 		vold = vSource ;
+#ifdef PLOTRAY
+		rayPoint(xUp,zold) ;
+#endif 
 		for( i = iLayer ; i > 0 ; ) {
 			i-- ;
 			z = m->z[i];
@@ -273,6 +329,9 @@ double traceUD( int mode, double p, double zSource, VelModel *m, double *tTime)
 			zold = z ; vold = v ;
 			timeUp += t ;
 			xUp += x ;
+#ifdef PLOTRAY
+			rayPoint(xUp,zold) ;
+#endif 
 		}
 		if( mode == RayUP ) {
 			*tTime = timeUp ;
@@ -294,6 +353,9 @@ double traceUD( int mode, double p, double zSource, VelModel *m, double *tTime)
 /*		printf("%d ",i) ; */
 		z = m->z[i];
 		v = m->v[i];
+#ifdef PLOTRAY
+		rayPoint(xDown,zold) ;
+#endif 
 		zz = rtrace( vold,v,z-zold,p,&x,&t ) ;
 		timeDown += t ;
 		xDown    += x ;
@@ -302,6 +364,9 @@ double traceUD( int mode, double p, double zSource, VelModel *m, double *tTime)
 		if( zz > 0.0 ) break ;
 	}
 	zBottom = zold - zz ;
+#ifdef PLOTRAY
+	rayPoint(xDown,zBottom) ;
+#endif 
 	*tTime = timeUp + timeDown + timeDown ;
 	if( shLogLevel > 7 ) fprintf(stderr,"Leaving traceUD(%d,1/%8.3f,%8.3f) returning %9.3f\n",
 		mode,1.0/p,zSource,xUp + xDown + xDown) ;

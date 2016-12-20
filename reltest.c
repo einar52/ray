@@ -46,7 +46,6 @@ void checkPhases()
 	double dlon,distance,tt,dtt ;
 	int numberP,numberS,numberPe,numberSe ;
 	double sumP,sumS, sumPe,sumSe ;
-	sol = location ;
 	pp = phases ;
 	printf("%d phases, %d solutions\n",nPhases,nLoc) ;
 	numberP = 0 ; numberS = 0 ; sumS = 0.0 ; sumP = 0.0 ;

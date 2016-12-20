@@ -1,7 +1,12 @@
 
 CFLAGS=-g
 
-top : trt
+top : rayplott
+
+rayplott : rayplot
+	rayplot
+rayplot : rayplot.o ray.c
+	cc -g -DPLOTRAY -o rayplot ray.c rayplot.o -lproj -lm
 
 tt : travelt 
 	./travelt -d 3 -x 15
