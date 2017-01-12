@@ -194,7 +194,6 @@ double rtrace( double v1,double v2, double z, double p, double *x, double *t )
 	double si1, si2, co1, co2 ;
 	double z0, r, b, b1 ;
 	double zin, v2in,zturn ;
-/*	printf("z = %12.5e %12.5e ",z ,(v2-v1)/v1 ) ;  */
 	if( z <= 0.0 ) 	{ *t = 0.0, *x =0.0 ; return(0.0) ; }
 	if( v1 == v2 ) 	{ *t = 0.0, *x =0.0 ; return(0.0) ; }
 	if( p == 0 ) {
@@ -203,12 +202,13 @@ double rtrace( double v1,double v2, double z, double p, double *x, double *t )
 		return 0.0 ;
 	}
 	si1 = p*v1 ;
-	if( si1 > 1.0 )/* return( -1.0 ) ;  */ abort() ;
+	if( si1 > 1.0 )	{ *t = 0.0, *x =0.0 ; return(z) ; }
 	si2 = p*v2 ;
 	zturn = 0.0 ;
 	if ( si2 > 1.0 ) { 
 		v2in = v2 ;
 		v2 = 1.0 / p ;
+		if( v1 == v2 ) 	{ *t = 0.0, *x =0.0 ; return(0.0) ; }
 		si2 = 1.0 ;
 		zin = z ;
 		z = zin * ( v2 - v1 ) / ( v2in - v1 ) ;
@@ -353,19 +353,19 @@ double traceUD( int mode, double p, double zSource, VelModel *m, double *tTime)
 /*		printf("%d ",i) ; */
 		z = m->z[i];
 		v = m->v[i];
+		zz = rtrace( vold,v,z-zold,p,&x,&t ) ;
 #ifdef PLOTRAY
 		rayPoint(xDown,zold) ;
 #endif 
-		zz = rtrace( vold,v,z-zold,p,&x,&t ) ;
 		timeDown += t ;
 		xDown    += x ;
 		zold = z ; vold = v ;
 		if(shLogLevel>7) fprintf(stderr,"zz =%8.2e\n",zz) ;
-		if( zz > 0.0 ) break ;
+		if(( zz > 0.0 )|| (t == 0.0 ) ) break ;
 	}
 	zBottom = zold - zz ;
 #ifdef PLOTRAY
-	rayPoint(xDown,zBottom) ;
+	if( t > 0.0 ) rayPoint(xDown,zBottom) ; 
 #endif 
 	*tTime = timeUp + timeDown + timeDown ;
 	if( shLogLevel > 7 ) fprintf(stderr,"Leaving traceUD(%d,1/%8.3f,%8.3f) returning %9.3f\n",

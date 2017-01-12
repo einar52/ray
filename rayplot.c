@@ -9,6 +9,7 @@ rayplot options\n\
 	Options and [defaults] are:\n\
 	-P 	velfile	[plot.vel]	Name of velocity file\n\
 	-d	dz			Resample velocity file to dz\n\
+	-s	dz			Resample using cubic splines do dz\n\
 	-n	nz	[100]		Number of resampled velocoity values\n\
 	-b	zBottom [7.45]		Depth were ray turns\n\
 	-r	rayFile	[ray.points]	\n\
@@ -32,6 +33,7 @@ double zBottom = 7.45 ;
 char *rayFile = "ray.points" ;
 int nz = 100 ;
 char *pModel = "plot.vel" ;
+int splineFlag ;
 
 void doIt()
 {
@@ -41,7 +43,9 @@ void doIt()
 	VelModel m ;
 	DepthPoint *rp ;
 	if( dz > 0.0 ) {
-		m = resampleVelModel2(&mp,dz,nz) ;
+		if (splineFlag ) m = resampleVelModel(&mp,dz,nz) ;
+		else m = resampleVelModel2(&mp,dz,nz) ;
+		m.nVel = nz ;
 		printVelModel(&m) ;
 	}
 	else    m = mp ;
@@ -75,12 +79,13 @@ int main(int ac, char **av) {
 	extern char *optarg ;
 	extern int optind ;
 	int cc,n ;
-	feenableexcept(FE_INVALID) ; 
+	feenableexcept(FE_INVALID) ;  
 	shLogLevel = 2 ;
-	while( EOF != ( cc = getopt(ac,av,"d:n:b:P:r:hH?"))) {
+	while( EOF != ( cc = getopt(ac,av,"d:n:b:P:s:r:hH?"))) {
 	    switch(cc) {
 		case 'P' : pModel = optarg ; break ;
 		case 'd' : dz = atof(optarg) ; break ;
+		case 's' : dz = atof(optarg) ; splineFlag++ ; break ;
 		case 'n' : nz = atoi(optarg) ; break ;
 		case 'b' : zBottom = atof(optarg) ; break ;
 		case 'r' : rayFile = optarg ; break ;
